@@ -22,6 +22,8 @@ on:
 jobs:
   buildMacOS:
     runs-on: ${{ inputs.runner-type }}
+    env:
+      SCCACHE_DIR: ${{github.workspace}}/.sccache
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -48,6 +50,7 @@ jobs:
 
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
+      continue-on-error: true
 
     # Note: FetchContent is intentionally NOT cached. The glaze repo tracks
     # origin/main, and stale cache can cause build failures due to
