@@ -1,0 +1,78 @@
+name: "Reusable macOS Build"
+
+on:
+  workflow_call:
+    inputs:
+      create-setup:
+        description: 'Whether to create artifact for download'
+        required: false
+        type: boolean
+        default: false
+      build-type:
+        description: 'Build type (Debug or Release)'
+        required: false
+        type: string
+        default: 'Release'
+      runner-type:
+        description: 'Runner label (macos-15 for universal build, or self-hosted labels)'
+        required: false
+        type: string
+        default: 'macos-15'
+
+jobs:
+  buildMacOS:
+    runs-on: ${{ inputs.runner-type }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Xcode
+      if: ${{ !startsWith(inputs.runner-type, 'self-hosted') }}
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: 'latest'
+
+    - name: Setup CMake 3.30+ and Ninja
+      uses: lukka/get-cmake@latest
+      with:
+        cmakeVersion: '~3.30.0'
+        ninjaVersion: 'latest'
+
+    - run: mkdir ${{github.workspace}}/build
+
+    - name: Install dependencies
+      if: ${{ !startsWith(inputs.runner-type, 'self-hosted') }}
+      run: |
+        clang++ --version
+        cmake --version
+
+    - name: Setup sccache
+      uses: mozilla-actions/sccache-action@v0.0.9
+
+    # Note: FetchContent is intentionally NOT cached. The glaze repo tracks
+    # origin/main, and stale cache can cause build failures due to
+    # partial/mismatched source files.
+
+    - name: Configure CMake (GitHub runner - universal binary)
+      if: ${{ !startsWith(inputs.runner-type, 'self-hosted') }}
+      run: |
+        clang++ --version
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{inputs.build-type}} -GNinja -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+
+    - name: Configure CMake (self-hosted - native architecture)
+      if: ${{ startsWith(inputs.runner-type, 'self-hosted') }}
+      run: |
+        clang++ --version
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{inputs.build-type}} -GNinja
+
+    - name: Build kwxgen
+      run: |
+        cmake --build ${{github.workspace}}/build -j$(nproc 2>/dev/null || sysctl -n hw.ncpu) --config ${{inputs.build-type}} --target kwxgen
+
+    - name: Create Artifact
+      if: ${{ inputs.create-setup }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: macOS-universal
+        path: |
+          build/kwxgen

@@ -1,0 +1,14 @@
+name: "Build Unix Executable"
+
+on:
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  buildUnix:
+    uses: ./.github/workflows/build-unix-reusable.yml
+    with:
+      create-setup: true
+      build-type: Release

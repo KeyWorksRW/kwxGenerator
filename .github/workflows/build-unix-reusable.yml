@@ -1,0 +1,73 @@
+name: "Reusable Unix Build"
+
+on:
+  workflow_call:
+    inputs:
+      create-setup:
+        description: 'Whether to create artifact for download'
+        required: false
+        type: boolean
+        default: false
+      build-type:
+        description: 'Build type (Debug or Release)'
+        required: false
+        type: string
+        default: 'Release'
+      runner-type:
+        description: 'Runner type (self-hosted or github-hosted)'
+        required: false
+        type: string
+        default: 'github-hosted'
+
+jobs:
+  buildUnix:
+    runs-on: ${{ inputs.runner-type == 'self-hosted' && fromJSON('["self-hosted", "Linux", "X64"]') || 'ubuntu-latest' }}
+    env:
+      SCCACHE_DIR: ${{github.workspace}}/.sccache
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install unzip (required by get-cmake)
+      if: inputs.runner-type != 'self-hosted'
+      run: sudo apt-get update && sudo apt-get install -y unzip
+
+    - name: Setup CMake 3.30+ and Ninja
+      uses: lukka/get-cmake@latest
+      with:
+        cmakeVersion: '~3.30.0'
+        ninjaVersion: 'latest'
+
+    - run: mkdir ${{github.workspace}}/build
+
+    - name: Install dependencies
+      if: inputs.runner-type != 'self-hosted'
+      run: |
+        sudo apt-get update
+        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+        sudo add-apt-repository 'deb http://apt.llvm.org/noble/ llvm-toolchain-noble main'
+        sudo apt-get update
+        sudo apt-get install -y clang-20
+        clang-20 --version
+        cmake --version
+
+    - name: Setup sccache
+      uses: mozilla-actions/sccache-action@v0.0.9
+
+    # Note: FetchContent is intentionally NOT cached. The glaze repo tracks
+    # origin/main, and stale cache can cause build failures due to
+    # partial/mismatched source files.
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{inputs.build-type}} -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20
+
+    - name: Build kwxgen
+      run: cmake --build ${{github.workspace}}/build -j$(nproc) --config ${{inputs.build-type}} --target kwxgen
+
+    - name: Create Artifact
+      if: ${{ inputs.create-setup }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: LinuxExecutable
+        path: |
+          build/kwxgen

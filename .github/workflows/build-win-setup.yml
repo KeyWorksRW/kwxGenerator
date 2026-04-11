@@ -1,0 +1,14 @@
+name: "Build Windows Executable"
+
+on:
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  buildWindows:
+    uses: ./.github/workflows/build-win-reusable.yml
+    with:
+      create-setup: true
+      build-type: Release

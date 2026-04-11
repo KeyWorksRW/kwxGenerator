@@ -1,0 +1,52 @@
+name: "CodeQL"
+
+on:
+  schedule:
+    - cron: '17 6 * * 0'
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: windows-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'cpp' ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup CMake 3.30+
+      uses: lukka/get-cmake@latest
+      with:
+        cmakeVersion: '~3.30.0'
+
+    - run: mkdir ${{github.workspace}}/build
+
+    # Note: FetchContent is intentionally NOT cached. The glaze repo tracks
+    # origin/main, and stale cache can cause build failures due to
+    # partial/mismatched source files.
+
+    - name: Configure CMake
+      run: cmake -G "Visual Studio 17 2022" -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v4
+      with:
+        languages: ${{ matrix.language }}
+
+    - name: Build kwxgen
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target kwxgen
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v4

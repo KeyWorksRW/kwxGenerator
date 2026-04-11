@@ -1,0 +1,30 @@
+name: "Weekly Build"
+
+on:
+  schedule:
+    # Run weekly on Sunday at 12:05 PM UTC
+    - cron: '5 12 * * 0'
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  buildWindows:
+    uses: ./.github/workflows/build-win-reusable.yml
+    with:
+      create-setup: true
+      build-type: Release
+
+  buildUnix:
+    uses: ./.github/workflows/build-unix-reusable.yml
+    with:
+      create-setup: true
+      build-type: Release
+
+  buildMacOS:
+    uses: ./.github/workflows/build-macos-reusable.yml
+    with:
+      create-setup: true
+      build-type: Release
+      runner-type: macos-15

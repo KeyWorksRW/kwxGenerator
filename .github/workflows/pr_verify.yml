@@ -1,0 +1,84 @@
+name: PR Verification
+
+on:
+  pull_request:
+    paths-ignore:
+      - .github
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  clangFormat:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: DoozyX/clang-format-lint-action@v0.20
+      with:
+        source: './src'
+        exclude: file
+        extensions: 'h,cpp'
+        clangFormatVersion: 20
+        style: file
+
+  check-spelling:
+    runs-on: ubuntu-latest
+    name: Check Spelling
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Spell Check
+        uses: crate-ci/typos@v1
+
+  check-whitespace:
+    runs-on: ubuntu-latest
+    name: Check Whitespace
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for trailing whitespace and TABs
+        run: |
+            git fetch --depth=1 origin main
+            git -c core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol,tab-in-indent \
+                diff --check origin/main -- \
+                'src/*.cpp' \
+                'src/*.h' \
+                'src/lang/'
+
+  check-eol:
+    runs-on: ubuntu-latest
+    name: Check Line Endings (LF only)
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check all source files use LF line endings
+        run: |
+          crlf_files=$(find src -type f \( -name '*.cpp' -o -name '*.h' \) -exec grep -rlP '\r\n' {} +) || true
+          if [ -n "$crlf_files" ]; then
+            echo "Error: The following files contain CRLF line endings:"
+            echo "$crlf_files"
+            exit 1
+          fi
+          echo "All source files use LF line endings."
+
+  buildUnix:
+    uses: ./.github/workflows/build-unix-reusable.yml
+    with:
+      create-setup: false
+      build-type: Release
+      runner-type: ${{ github.actor == 'Randalphwa' && 'self-hosted' || 'github-hosted' }}
+
+  buildMacOS:
+    uses: ./.github/workflows/build-macos-reusable.yml
+    with:
+      create-setup: false
+      build-type: Release
+      runner-type: ${{ github.actor == 'Randalphwa' && 'self-hosted' || 'github-hosted' }}

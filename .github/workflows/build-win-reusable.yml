@@ -1,0 +1,46 @@
+name: "Reusable Windows Build"
+
+on:
+  workflow_call:
+    inputs:
+      create-setup:
+        description: 'Whether to create artifact for download'
+        required: false
+        type: boolean
+        default: false
+      build-type:
+        description: 'Build type (Debug or Release)'
+        required: false
+        type: string
+        default: 'Release'
+
+jobs:
+  buildWindows:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup CMake 3.30+
+      uses: lukka/get-cmake@latest
+      with:
+        cmakeVersion: '~3.30.0'
+
+    - run: mkdir ${{github.workspace}}/build
+
+    - name: Setup sccache
+      uses: mozilla-actions/sccache-action@v0.0.9
+
+    - name: Configure CMake
+      run: cmake -G "Visual Studio 17 2022" -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{inputs.build-type}}
+
+    - name: Build kwxgen
+      run: cmake --build ${{github.workspace}}/build --config ${{inputs.build-type}} --target kwxgen
+
+    - name: Create Artifact
+      if: ${{ inputs.create-setup }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: WindowsExecutable
+        path: |
+          build/${{inputs.build-type}}/kwxgen.exe
