@@ -50,12 +50,13 @@ jobs:
         # Ensure libc++ dev packages are present (llvm.sh 'all' should
         # install them, but be explicit in case of partial failures)
         sudo apt-get install -y libc++-21-dev libc++abi-21-dev
+        # Create unversioned symlinks so CMake uses the same compiler name
+        # on both GitHub-hosted (clang-21) and self-hosted (clang v22)
+        sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-21 100
+        sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-21 100
 
-    - name: Verify tools
-      run: |
-        clang-21 --version
-        cmake --version
-        dpkg -l libc++-21-dev libc++abi-21-dev
+    - name: Verify clang
+      run: clang++ --version
 
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
@@ -69,8 +70,8 @@ jobs:
         cmake -B ${{github.workspace}}/build
         -DCMAKE_BUILD_TYPE=${{inputs.build-type}}
         -GNinja
-        -DCMAKE_C_COMPILER=clang-21
-        -DCMAKE_CXX_COMPILER=clang++-21
+        -DCMAKE_C_COMPILER=clang
+        -DCMAKE_CXX_COMPILER=clang++
         -DCMAKE_CXX_FLAGS="-stdlib=libc++"
         -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -lc++abi"
 
