@@ -73,7 +73,6 @@ jobs:
         -DCMAKE_C_COMPILER=clang
         -DCMAKE_CXX_COMPILER=clang++
         -DCMAKE_CXX_FLAGS="-stdlib=libc++"
-        -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -lc++abi"
 
     - name: Build kwxgen
       run: cmake --build ${{github.workspace}}/build -j$(nproc) --config ${{inputs.build-type}} --target kwxgen
