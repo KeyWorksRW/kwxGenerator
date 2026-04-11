@@ -47,11 +47,15 @@ jobs:
         wget https://apt.llvm.org/llvm.sh
         chmod +x llvm.sh
         sudo ./llvm.sh 20 all
+        # Ensure libc++ dev packages are present (llvm.sh 'all' should
+        # install them, but be explicit in case of partial failures)
+        sudo apt-get install -y libc++-20-dev libc++abi-20-dev
 
     - name: Verify tools
       run: |
         clang-20 --version
         cmake --version
+        dpkg -l libc++-20-dev libc++abi-20-dev
 
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
@@ -61,7 +65,14 @@ jobs:
     # partial/mismatched source files.
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{inputs.build-type}} -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20 -DCMAKE_CXX_FLAGS="-stdlib=libc++" -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++"
+      run: >
+        cmake -B ${{github.workspace}}/build
+        -DCMAKE_BUILD_TYPE=${{inputs.build-type}}
+        -GNinja
+        -DCMAKE_C_COMPILER=clang-20
+        -DCMAKE_CXX_COMPILER=clang++-20
+        -DCMAKE_CXX_FLAGS="-stdlib=libc++"
+        -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -lc++abi"
 
     - name: Build kwxgen
       run: cmake --build ${{github.workspace}}/build -j$(nproc) --config ${{inputs.build-type}} --target kwxgen
