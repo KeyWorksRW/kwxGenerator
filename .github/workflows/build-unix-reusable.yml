@@ -40,22 +40,22 @@ jobs:
 
     - run: mkdir ${{github.workspace}}/build
 
-    - name: Install LLVM Clang 20 (GitHub-hosted)
+    - name: Install LLVM Clang 21 (GitHub-hosted)
       if: ${{ inputs.runner-type != 'self-hosted' }}
       run: |
         sudo apt-get update
         wget https://apt.llvm.org/llvm.sh
         chmod +x llvm.sh
-        sudo ./llvm.sh 20 all
+        sudo ./llvm.sh 21 all
         # Ensure libc++ dev packages are present (llvm.sh 'all' should
         # install them, but be explicit in case of partial failures)
-        sudo apt-get install -y libc++-20-dev libc++abi-20-dev
+        sudo apt-get install -y libc++-21-dev libc++abi-21-dev
 
     - name: Verify tools
       run: |
-        clang-20 --version
+        clang-21 --version
         cmake --version
-        dpkg -l libc++-20-dev libc++abi-20-dev
+        dpkg -l libc++-21-dev libc++abi-21-dev
 
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
@@ -69,8 +69,8 @@ jobs:
         cmake -B ${{github.workspace}}/build
         -DCMAKE_BUILD_TYPE=${{inputs.build-type}}
         -GNinja
-        -DCMAKE_C_COMPILER=clang-20
-        -DCMAKE_CXX_COMPILER=clang++-20
+        -DCMAKE_C_COMPILER=clang-21
+        -DCMAKE_CXX_COMPILER=clang++-21
         -DCMAKE_CXX_FLAGS="-stdlib=libc++"
         -DCMAKE_EXE_LINKER_FLAGS="-stdlib=libc++ -lc++abi"
 
