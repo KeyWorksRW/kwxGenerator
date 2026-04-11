@@ -81,4 +81,4 @@ jobs:
     with:
       create-setup: false
       build-type: Release
-      runner-type: ${{ github.actor == 'Randalphwa' && 'self-hosted' || 'github-hosted' }}
+      runner-type: ${{ github.actor == 'Randalphwa' && 'self-hosted-arm64' || 'macos-15' }}
