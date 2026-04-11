@@ -164,24 +164,24 @@ void FortranEmitter::Generate(const ParsedFFI& ffi_data, const fs::path& outDir)
     // Sort once; passed to all sub-generators that need ordered output.
     std::vector<EventDecl> sorted_events = ffi_data.events;
     std::ranges::sort(sorted_events,
-                       [](const EventDecl& left, const EventDecl& right)
-                       {
-                           return left.event_name < right.event_name;
-                       });
+                      [](const EventDecl& left, const EventDecl& right)
+                      {
+                          return left.event_name < right.event_name;
+                      });
 
     std::vector<KeyDecl> sorted_keys = ffi_data.keys;
     std::ranges::sort(sorted_keys,
-                       [](const KeyDecl& left, const KeyDecl& right)
-                       {
-                           return left.key_name < right.key_name;
-                       });
+                      [](const KeyDecl& left, const KeyDecl& right)
+                      {
+                          return left.key_name < right.key_name;
+                      });
 
     std::vector<ConstantDecl> sorted_constants = ffi_data.constants;
     std::ranges::sort(sorted_constants,
-                       [](const ConstantDecl& left, const ConstantDecl& right)
-                       {
-                           return left.export_name < right.export_name;
-                       });
+                      [](const ConstantDecl& left, const ConstantDecl& right)
+                      {
+                          return left.export_name < right.export_name;
+                      });
 
     // 1. Raw C interface module (kwxffi_gen.f90)
     {
@@ -602,10 +602,10 @@ void FortranEmitter::GenerateConstantsModule(const ParsedFFI& ffi_data, const fs
 
     // Sort by Fortran name
     std::ranges::sort(entries,
-                       [](const ConstEntry& left, const ConstEntry& right)
-                       {
-                           return left.fortran_name < right.fortran_name;
-                       });
+                      [](const ConstEntry& left, const ConstEntry& right)
+                      {
+                          return left.fortran_name < right.fortran_name;
+                      });
 
     // Public declarations — emit all
     for (const auto& entry: entries)

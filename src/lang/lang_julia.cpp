@@ -19,7 +19,6 @@
 #include <unordered_set>
 #include <vector>
 
-
 // NOLINTBEGIN(readability-magic-string)
 
 namespace fs = std::filesystem;
@@ -638,10 +637,10 @@ void JuliaEmitter::GenerateEvents(const ParsedFFI& parsed_ffi, const fs::path& o
 
     std::vector<EventDecl> sorted = parsed_ffi.events;
     std::ranges::sort(sorted,
-                       [](const EventDecl& lhs, const EventDecl& rhs)
-                       {
-                           return lhs.event_name < rhs.event_name;
-                       });
+                      [](const EventDecl& lhs, const EventDecl& rhs)
+                      {
+                          return lhs.event_name < rhs.event_name;
+                      });
 
     for (const auto& event: sorted)
     {
@@ -670,10 +669,10 @@ void JuliaEmitter::GenerateKeys(const ParsedFFI& parsed_ffi, const fs::path& out
 
     std::vector<KeyDecl> sorted = parsed_ffi.keys;
     std::ranges::sort(sorted,
-                       [](const KeyDecl& lhs, const KeyDecl& rhs)
-                       {
-                           return lhs.key_name < rhs.key_name;
-                       });
+                      [](const KeyDecl& lhs, const KeyDecl& rhs)
+                      {
+                          return lhs.key_name < rhs.key_name;
+                      });
 
     for (const auto& key_item: sorted)
     {
@@ -702,10 +701,10 @@ void JuliaEmitter::GenerateConstants(const ParsedFFI& parsed_ffi, const fs::path
 
     std::vector<ConstantDecl> sorted = parsed_ffi.constants;
     std::ranges::sort(sorted,
-                       [](const ConstantDecl& lhs, const ConstantDecl& rhs)
-                       {
-                           return lhs.export_name < rhs.export_name;
-                       });
+                      [](const ConstantDecl& lhs, const ConstantDecl& rhs)
+                      {
+                          return lhs.export_name < rhs.export_name;
+                      });
 
     for (const auto& constant: sorted)
     {

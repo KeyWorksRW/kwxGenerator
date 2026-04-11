@@ -107,13 +107,14 @@ VerifyResult VerifyGeneratedFiles(const fs::path& gen_dir, const fs::path& ref_d
         static const std::locale user_locale("");
         if (!result.missing_files.empty())
         {
-            result.messages.push_back(std::format(user_locale, "Missing {:L} file(s) in generated output",
+            result.messages.push_back(std::format(user_locale,
+                                                  "Missing {:L} file(s) in generated output",
                                                   result.missing_files.size()));
         }
         if (!result.extra_files.empty())
         {
-            result.messages.push_back(std::format(user_locale, "Extra {:L} file(s) in generated output",
-                                                  result.extra_files.size()));
+            result.messages.push_back(std::format(
+                user_locale, "Extra {:L} file(s) in generated output", result.extra_files.size()));
         }
         if (!result.mismatched_files.empty())
         {
