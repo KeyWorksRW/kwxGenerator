@@ -28,7 +28,7 @@ jobs:
 
     - name: Setup Xcode
       if: ${{ !startsWith(inputs.runner-type, 'self-hosted') }}
-      uses: maxim-lobanov/setup-xcode@v1
+      uses: maxim-lobanov/setup-xcode@v1.7.0
       with:
         xcode-version: 'latest'
 

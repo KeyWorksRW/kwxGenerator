@@ -26,7 +26,7 @@ jobs:
       SCCACHE_DIR: ${{github.workspace}}/.sccache
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Install unzip (required by get-cmake)
       if: inputs.runner-type != 'self-hosted'
