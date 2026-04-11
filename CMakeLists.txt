@@ -44,5 +44,6 @@ add_executable(kwxgen
 target_include_directories(kwxgen PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/lang
-    ${CMAKE_CURRENT_LIST_DIR}/build/_deps/glaze-src/include
 )
+
+target_link_libraries(kwxgen PRIVATE glaze::glaze)

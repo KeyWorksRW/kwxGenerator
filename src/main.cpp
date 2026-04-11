@@ -16,6 +16,20 @@
     #error "C++23 or later is required to build this project. Please upgrade your compiler."
 #endif
 
+// Example kwxgen.config.json (all fields are optional; command-line args override):
+//
+// {
+//     "command": "generate",
+//     "headers_dir": "../kwxFFI/include",
+//     "defs_file": "../kwxFFI/kwx_defs.h",
+//     "out_path": "./generated",
+//     "lang": "rust",
+//     "verify_dir": "./reference",
+//     "manifest_file": "./manifest.json",
+//     "lib_name": "kwxFFI",
+//     "exports": false
+// }
+
 #include "class_parser.h"
 #include "constants_parser.h"
 #include "defs_parser.h"
@@ -42,6 +56,8 @@
 #include <string_view>
 #include <tuple>
 #include <vector>
+
+#include <glaze/json.hpp>
 
 namespace fs = std::filesystem;
 
@@ -95,11 +111,37 @@ struct Args
     bool exports = false;             // --exports
 };
 
+static constexpr std::string_view CONFIG_FILE_NAME = "kwxgen.config.json";
+
+// Load Args from kwxgen.config.json in the current directory (if it exists).
+// Returns false only on parse errors; a missing config file is not an error.
+static bool LoadConfigFile(Args& args)
+{
+    const fs::path config_path = fs::current_path() / CONFIG_FILE_NAME;
+    if (!fs::exists(config_path))
+    {
+        return true;
+    }
+
+    std::string buffer;
+    const glz::error_ctx errc =
+        glz::read_file_json<glz::opts{.error_on_unknown_keys = false}>(args, config_path.string(), buffer);
+    if (errc)
+    {
+        std::cerr << "Error reading " << config_path << ": " << glz::format_error(errc, buffer) << "\n";
+        return false;
+    }
+
+    std::cerr << "Loaded config from " << config_path << "\n";
+    return true;
+}
+
 [[nodiscard]] static bool ParseArgs(int argc, char* argv[], Args& args)
 {
     if (argc < 2)
     {
-        return false;
+        // If a config file already set the command, no command-line args are needed.
+        return !args.command.empty();
     }
 
     args.command = argv[1];
@@ -267,6 +309,7 @@ static ParsedFFI RunParsers(const fs::path& headers_dir, const fs::path& defs_fi
 int main(int argc, char* argv[])
 {
     Args args;
+    std::ignore = LoadConfigFile(args);
     if (!ParseArgs(argc, argv, args))
     {
         PrintUsage(argc > 0 ? argv[0] : "kwxgen");
