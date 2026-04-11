@@ -50,7 +50,6 @@ jobs:
 
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
-      continue-on-error: true
 
     # Note: FetchContent is intentionally NOT cached. The glaze repo tracks
     # origin/main, and stale cache can cause build failures due to
