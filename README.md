@@ -15,7 +15,7 @@ are written into the *consumer* repo's source tree — kwxFFI itself is unchange
 Each language port follows the same three-step pattern:
 
 1. Obtain kwxFFI (submodule or clone)
-2. Build `kwxgen` — pure C++17, zero external dependencies, builds in seconds
+2. Build `kwxgen` — pure C++23, zero external dependencies, builds in seconds
 3. Run `kwxgen generate` — reads the kwxFFI headers, writes bindings into your repo
 
 The sections below detail the exact steps for each language.
@@ -24,7 +24,7 @@ The sections below detail the exact steps for each language.
 
 ### Go (kwxGO)
 
-**Prerequisites:** CMake 3.30+, a C++17 compiler.
+**Prerequisites:** CMake 3.30+, a C++23 compiler.
 
 **Step 1 — Build kwxgen in your CMakeLists.txt:**
 
@@ -70,7 +70,7 @@ kwxgen verify --headers extern/kwxFFI/include \
 
 ### LuaJIT (kwxLuaJIT)
 
-**Prerequisites:** CMake 3.30+ and a C++17 compiler to build kwxgen
+**Prerequisites:** CMake 3.30+ and a C++23 compiler to build kwxgen
 
 **Step 1 — Build kwxgen** (standalone, no CMake integration required for pure-Lua projects):
 
@@ -101,7 +101,7 @@ local wx = require("wx.kwxffi")
 
 ### Julia (kwxJulia)
 
-**Prerequisites:** CMake 3.30+ and a C++17 compiler.
+**Prerequisites:** CMake 3.30+ and a C++23 compiler.
 
 **Step 1 — Build kwxgen:**
 
@@ -134,7 +134,7 @@ Regenerate any time kwxFFI is updated; commit the generated files alongside hand
 
 ### Rust (kwxRust)
 
-**Prerequisites:** CMake 3.30+ and a C++17 compiler
+**Prerequisites:** CMake 3.30+ and a C++23 compiler
 
 **Step 1 — Invoke kwxgen from `build.rs`:**
 
@@ -174,7 +174,7 @@ pub use gen::button::Button;
 
 ### Perl (kwxPerl)
 
-**Prerequisites:** CMake 3.30+ and a C++17 compiler; Perl 5.32+ with `FFI::Platypus` 2.00+.
+**Prerequisites:** CMake 3.30+ and a C++23 compiler; Perl 5.32+ with `FFI::Platypus` 2.00+.
 
 **Step 1 — Build kwxgen and generate** (from `Makefile.PL` or a setup script):
 
@@ -202,7 +202,7 @@ my $btn = Wx::Gen::Button->Create($parent, -1, "OK", ...);
 
 ### Fortran (kwxFortran)
 
-**Prerequisites:** CMake 3.30+ and a C++17 compiler
+**Prerequisites:** CMake 3.30+ and a C++23 compiler
 
 **Step 1 — Build kwxgen and generate** (from CMakeLists.txt or a script):
 
@@ -272,7 +272,7 @@ build/kwxgen/kwxgen verify \
 
 ## Building
 
-`kwxgen` is a standalone C++17 program with no wxWidgets dependency:
+`kwxgen` is a standalone C++23 program with no wxWidgets dependency:
 
 ```sh
 cmake -S tools/kwxgen -B tools/kwxgen/build -G Ninja
