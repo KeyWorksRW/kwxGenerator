@@ -31,8 +31,8 @@
 #include <ostream>
 #include <string>
 
-// Serialize ParsedFFI to JSON on the given output stream.
+// Serialize ParsedFFI to prettified JSON on the given output stream.
 void DumpJson(const ParsedFFI& parsed_ffi, std::ostream& output);
 
-// Serialize ParsedFFI to JSON and write to a file. Returns true on success.
+// Serialize ParsedFFI to prettified JSON and write to a file. Returns true on success.
 [[nodiscard]] bool DumpJsonToFile(const ParsedFFI& parsed_ffi, const std::string& file_path);
