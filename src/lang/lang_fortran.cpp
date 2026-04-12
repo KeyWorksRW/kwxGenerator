@@ -67,7 +67,7 @@ static void EmitFortranInterface(std::ostream& output, const std::string& cName,
                                  const FortranReturnInfo& retInfo,
                                  const std::vector<FortranParam>& params)
 {
-    const std::flat_set<std::string> imports = CollectImports(params, retInfo);
+    const std::set<std::string> imports = CollectImports(params, retInfo);
 
     if (retInfo.is_void)
     {

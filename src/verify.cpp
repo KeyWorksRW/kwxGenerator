@@ -8,7 +8,7 @@
 #include "verify.h"
 
 #include <filesystem>
-#include <flat_set>
+#include <set>
 #include <format>
 #include <fstream>
 #include <iostream>
@@ -48,8 +48,8 @@ VerifyResult VerifyGeneratedFiles(const fs::path& gen_dir, const fs::path& ref_d
     }
 
     // Collect filenames in each directory (non-recursive, *.go files only)
-    std::flat_set<std::string> gen_files;
-    std::flat_set<std::string> ref_files;
+    std::set<std::string> gen_files;
+    std::set<std::string> ref_files;
 
     for (const auto& entry: fs::directory_iterator(gen_dir))
     {

@@ -7,7 +7,7 @@
 
 #include "../model.h"
 
-#include <flat_set>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -342,10 +342,10 @@ inline std::vector<FortranParam> ExpandParamToFortran(const Param& p)
 }
 
 // Collect all unique import symbols needed for a set of Fortran params + return type.
-inline std::flat_set<std::string> CollectImports(const std::vector<FortranParam>& params,
+inline std::set<std::string> CollectImports(const std::vector<FortranParam>& params,
                                                  const FortranReturnInfo& retInfo)
 {
-    std::flat_set<std::string> imports;
+    std::set<std::string> imports;
     if (!retInfo.import_sym.empty())
         imports.insert(retInfo.import_sym);
     for (const auto& p: params)

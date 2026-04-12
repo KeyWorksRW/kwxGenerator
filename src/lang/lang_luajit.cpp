@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
-#include <flat_set>
+#include <set>
 #include <format>
 #include <iostream>
 #include <locale>
@@ -324,7 +324,7 @@ static std::string FindWrappedParent(const std::string& class_name, const Parsed
 {
     std::unordered_map<std::string, std::string>::const_iterator iter =
         ffi_data.parent_map.find(class_name);
-    std::flat_set<std::string> visited;
+    std::set<std::string> visited;
     while (iter != ffi_data.parent_map.end())
     {
         const std::string& parent = iter->second;

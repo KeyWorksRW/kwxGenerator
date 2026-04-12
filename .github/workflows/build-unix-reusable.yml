@@ -46,10 +46,7 @@ jobs:
         sudo apt-get update
         wget https://apt.llvm.org/llvm.sh
         chmod +x llvm.sh
-        sudo ./llvm.sh 21 all
-        # Ensure libc++ dev packages are present (llvm.sh 'all' should
-        # install them, but be explicit in case of partial failures)
-        sudo apt-get install -y libc++-21-dev libc++abi-21-dev
+        sudo ./llvm.sh 21
         # Create unversioned symlinks so CMake uses the same compiler name
         # on both GitHub-hosted (clang-21) and self-hosted (clang v22)
         sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-21 100
@@ -72,7 +69,6 @@ jobs:
         -GNinja
         -DCMAKE_C_COMPILER=clang
         -DCMAKE_CXX_COMPILER=clang++
-        -DCMAKE_CXX_FLAGS="-stdlib=libc++"
 
     - name: Build kwxgen
       run: cmake --build ${{github.workspace}}/build -j$(nproc) --config ${{inputs.build-type}} --target kwxgen

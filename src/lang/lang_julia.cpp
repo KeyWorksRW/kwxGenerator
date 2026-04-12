@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
-#include <flat_set>
+#include <set>
 #include <iostream>
 #include <tuple>
 #include <unordered_set>
@@ -152,7 +152,7 @@ static std::string
                                                                "wxWindow",         "wxControl",
                                                                "wxTopLevelWindow", "wxSizer" };
     std::string current = class_name;
-    std::flat_set<std::string> visited;
+    std::set<std::string> visited;
     while (true)
     {
         const std::unordered_map<std::string, std::string>::const_iterator iter =
