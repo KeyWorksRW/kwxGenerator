@@ -29,6 +29,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install LLVM Clang
+      if: ${{ !startsWith(inputs.runner-type, 'self-hosted') }}
       run: |
         brew install llvm
         echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
