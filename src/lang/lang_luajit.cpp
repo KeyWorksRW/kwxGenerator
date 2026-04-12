@@ -13,10 +13,10 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
-#include <flat_set>
 #include <format>
 #include <iostream>
 #include <locale>
+#include <set>
 #include <unordered_set>
 #include <vector>
 
@@ -324,7 +324,7 @@ static std::string FindWrappedParent(const std::string& class_name, const Parsed
 {
     std::unordered_map<std::string, std::string>::const_iterator iter =
         ffi_data.parent_map.find(class_name);
-    std::flat_set<std::string> visited;
+    std::set<std::string> visited;
     while (iter != ffi_data.parent_map.end())
     {
         const std::string& parent = iter->second;
@@ -412,10 +412,10 @@ void LuaJITEmitter::GenerateEvents(const ParsedFFI& ffi_data, const fs::path& ou
 
     std::vector<EventDecl> sorted = ffi_data.events;
     std::ranges::sort(sorted,
-                       [](const EventDecl& left, const EventDecl& right)
-                       {
-                           return left.event_name < right.event_name;
-                       });
+                      [](const EventDecl& left, const EventDecl& right)
+                      {
+                          return left.event_name < right.event_name;
+                      });
 
     for (const auto& event: sorted)
     {
@@ -449,10 +449,10 @@ void LuaJITEmitter::GenerateKeys(const ParsedFFI& ffi_data, const fs::path& out_
 
     std::vector<KeyDecl> sorted = ffi_data.keys;
     std::ranges::sort(sorted,
-                       [](const KeyDecl& left, const KeyDecl& right)
-                       {
-                           return left.key_name < right.key_name;
-                       });
+                      [](const KeyDecl& left, const KeyDecl& right)
+                      {
+                          return left.key_name < right.key_name;
+                      });
 
     for (const auto& key_decl: sorted)
     {
@@ -486,10 +486,10 @@ void LuaJITEmitter::GenerateConstants(const ParsedFFI& ffi_data, const fs::path&
 
     std::vector<ConstantDecl> sorted = ffi_data.constants;
     std::ranges::sort(sorted,
-                       [](const ConstantDecl& left, const ConstantDecl& right)
-                       {
-                           return left.export_name < right.export_name;
-                       });
+                      [](const ConstantDecl& left, const ConstantDecl& right)
+                      {
+                          return left.export_name < right.export_name;
+                      });
 
     for (const auto& constant: sorted)
     {
@@ -772,8 +772,8 @@ static void EmitLuaPostCalls(std::ostream& output,
 }
 
 // Returns true if any parameter in the groups has a post-call statement.
-[[nodiscard]] static bool HasLuaPostCalls(
-    const std::vector<std::vector<LuaIdiomParam>>& param_groups)
+[[nodiscard]] static bool
+    HasLuaPostCalls(const std::vector<std::vector<LuaIdiomParam>>& param_groups)
 {
     for (const auto& group: param_groups)
     {
@@ -790,10 +790,10 @@ static void EmitLuaPostCalls(std::ostream& output,
 
 // Builds a complete C call expression string from a function and its Lua parameter groups.
 // When self_expr is non-empty, it is used as the first argument (e.g. "self._ptr").
-[[nodiscard]] static std::string BuildLuaCCall(
-    const FunctionDecl& func_info,
-    const std::vector<std::vector<LuaIdiomParam>>& param_groups,
-    const std::string& self_expr)
+[[nodiscard]] static std::string
+    BuildLuaCCall(const FunctionDecl& func_info,
+                  const std::vector<std::vector<LuaIdiomParam>>& param_groups,
+                  const std::string& self_expr)
 {
     std::string result = "C." + CFuncName(func_info) + "(";
     bool first_arg = true;

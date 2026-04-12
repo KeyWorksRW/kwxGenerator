@@ -129,7 +129,6 @@ void GenerateExportFiles(const ParsedFFI& ffi_data, const fs::path& out_dir)
     }
 
     static const std::locale user_locale("");
-    std::cerr << std::format(user_locale,
-                             "Exports: {:L} symbols, {} of 3 files written to {}\n",
+    std::cerr << std::format(user_locale, "Exports: {:L} symbols, {} of 3 files written to {}\n",
                              symbols.size(), written, out_dir.string());
 }

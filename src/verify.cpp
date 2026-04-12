@@ -8,11 +8,11 @@
 #include "verify.h"
 
 #include <filesystem>
-#include <flat_set>
 #include <format>
 #include <fstream>
 #include <iostream>
 #include <locale>
+#include <set>
 #include <sstream>
 
 namespace fs = std::filesystem;
@@ -48,8 +48,8 @@ VerifyResult VerifyGeneratedFiles(const fs::path& gen_dir, const fs::path& ref_d
     }
 
     // Collect filenames in each directory (non-recursive, *.go files only)
-    std::flat_set<std::string> gen_files;
-    std::flat_set<std::string> ref_files;
+    std::set<std::string> gen_files;
+    std::set<std::string> ref_files;
 
     for (const auto& entry: fs::directory_iterator(gen_dir))
     {
@@ -107,13 +107,14 @@ VerifyResult VerifyGeneratedFiles(const fs::path& gen_dir, const fs::path& ref_d
         static const std::locale user_locale("");
         if (!result.missing_files.empty())
         {
-            result.messages.push_back(std::format(user_locale, "Missing {:L} file(s) in generated output",
+            result.messages.push_back(std::format(user_locale,
+                                                  "Missing {:L} file(s) in generated output",
                                                   result.missing_files.size()));
         }
         if (!result.extra_files.empty())
         {
-            result.messages.push_back(std::format(user_locale, "Extra {:L} file(s) in generated output",
-                                                  result.extra_files.size()));
+            result.messages.push_back(std::format(
+                user_locale, "Extra {:L} file(s) in generated output", result.extra_files.size()));
         }
         if (!result.mismatched_files.empty())
         {

@@ -14,8 +14,9 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
-#include <flat_set>
+#include <format>
 #include <iostream>
+#include <set>
 #include <unordered_set>
 #include <vector>
 
@@ -26,13 +27,13 @@ namespace fs = std::filesystem;
 // Strip "wx" / "kwx" prefix from a class name.
 static std::string PerlStripPrefix(const std::string& name)
 {
-    if (name.size() > 2 && name[0] == 'w' && name[1] == 'x')
+    if (name.size() > WX_PREFIX.length() && name.starts_with(WX_PREFIX))
     {
-        return name.substr(2);
+        return name.substr(WX_PREFIX.length());
     }
-    if (name.size() > 3 && name[0] == 'k' && name[1] == 'w' && name[2] == 'x')
+    if (name.size() > KWX_PREFIX.length() && name.starts_with(KWX_PREFIX))
     {
-        return name.substr(3);
+        return name.substr(KWX_PREFIX.length());
     }
     return name;
 }
@@ -103,7 +104,7 @@ static std::string FindWrappedParent(const std::string& class_name, const Parsed
 {
     std::unordered_map<std::string, std::string>::const_iterator iter =
         ffi.parent_map.find(class_name);
-    std::flat_set<std::string> visited;
+    std::set<std::string> visited;
     while (iter != ffi.parent_map.end())
     {
         const std::string& parent = iter->second;

@@ -124,11 +124,12 @@ static bool LoadConfigFile(Args& args)
     }
 
     std::string buffer;
-    const glz::error_ctx errc =
-        glz::read_file_json<glz::opts{.error_on_unknown_keys = false}>(args, config_path.string(), buffer);
+    const glz::error_ctx errc = glz::read_file_json<glz::opts { .error_on_unknown_keys = false }>(
+        args, config_path.string(), buffer);
     if (errc)
     {
-        std::cerr << "Error reading " << config_path << ": " << glz::format_error(errc, buffer) << "\n";
+        std::cerr << "Error reading " << config_path << ": " << glz::format_error(errc, buffer)
+                  << "\n";
         return false;
     }
 
@@ -256,7 +257,8 @@ static ParsedFFI RunParsers(const fs::path& headers_dir, const fs::path& defs_fi
     if (fs::exists(defs_file))
     {
         parsed_ffi.constants = ParseDefs(defs_file);
-        std::cerr << std::format(user_locale, "  Defs constants: {:L}\n", parsed_ffi.constants.size());
+        std::cerr << std::format(user_locale, "  Defs constants: {:L}\n",
+                                 parsed_ffi.constants.size());
     }
     else
     {
@@ -274,7 +276,8 @@ static ParsedFFI RunParsers(const fs::path& headers_dir, const fs::path& defs_fi
         {
             parsed_ffi.constants.push_back(std::move(constant));
         }
-        std::cerr << std::format(user_locale, "  Free functions: {:L}\n", parsed_ffi.free_functions.size());
+        std::cerr << std::format(user_locale, "  Free functions: {:L}\n",
+                                 parsed_ffi.free_functions.size());
         std::cerr << std::format(user_locale,
                                  "  Header consts:  {:L} (merged into constants total: {:L})\n",
                                  constants_result.constants.size(), parsed_ffi.constants.size());

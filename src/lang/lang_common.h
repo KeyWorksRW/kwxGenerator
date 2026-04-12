@@ -18,6 +18,9 @@
 #include <string>
 #include <string_view>
 
+constexpr std::string_view WX_PREFIX { "wx" };
+constexpr std::string_view KWX_PREFIX { "kwx" };
+
 // Returns true if a FunctionDecl is well-formed (no comment artifacts, non-empty method name).
 [[nodiscard]] inline bool IsValidFunction(const FunctionDecl& func)
 {

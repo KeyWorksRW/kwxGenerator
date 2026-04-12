@@ -13,12 +13,11 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
-#include <flat_set>
 #include <iostream>
+#include <set>
 #include <tuple>
 #include <unordered_set>
 #include <vector>
-
 
 // NOLINTBEGIN(readability-magic-string)
 
@@ -26,25 +25,32 @@ namespace fs = std::filesystem;
 
 // Build a C function name from a FunctionDecl.
 
+// Groups the three string identifiers needed by EmitCCallWrapper.
+struct CCallInfo
+{
+    std::string julia_name;
+    std::string c_name;
+    std::string return_type;
+};
+
 // Emit a Julia ccall wrapper for a function.
 // Output format:
 //   function name(param::Type, ...)
 //       ccall((:c_name, libkwxFFI), RetType, (ParamTypes...), params...)
 //   end
-static void EmitCCallWrapper(std::ostream& output, const std::string& juliaName,
-                             const std::string& cName, const std::string& returnType,
+static void EmitCCallWrapper(std::ostream& output, const CCallInfo& info,
                              const std::vector<JuliaParam>& params)
 {
     if (params.empty())
     {
         // Zero-argument function: use compact form
-        output << juliaName << "() = ccall((:" << cName << ", libkwxFFI), " << returnType
-               << ", ())\n";
+        output << info.julia_name << "() = ccall((:" << info.c_name << ", libkwxFFI), "
+               << info.return_type << ", ())\n";
         return;
     }
 
     // Multi-argument function
-    output << "function " << juliaName << "(";
+    output << "function " << info.julia_name << "(";
     for (size_t i = 0; i < params.size(); ++i)
     {
         if (i > 0)
@@ -56,7 +62,7 @@ static void EmitCCallWrapper(std::ostream& output, const std::string& juliaName,
     output << ")\n";
 
     // ccall line
-    output << "    ccall((:" << cName << ", libkwxFFI), " << returnType << ",\n";
+    output << "    ccall((:" << info.c_name << ", libkwxFFI), " << info.return_type << ",\n";
 
     // Type tuple
     output << "        (";
@@ -107,7 +113,8 @@ static void EmitFunctionWrapper(std::ostream& output, const FunctionDecl& func)
         }
     }
 
-    EmitCCallWrapper(output, cName, cName, retType, jParams);
+    EmitCCallWrapper(output, { .julia_name = cName, .c_name = cName, .return_type = retType },
+                     jParams);
 }
 
 // Check if a function declaration looks valid (skip malformed ones).
@@ -119,15 +126,15 @@ static void EmitFunctionWrapper(std::ostream& output, const FunctionDecl& func)
 // Strip wx/kwx prefix: "wxButton" → "Button"
 static std::string StripWxPrefix(const std::string& name)
 {
-    if (name.size() > 2 && name.starts_with("wx") &&
-        std::isupper(static_cast<unsigned char>(name[2])))
+    if (name.size() > WX_PREFIX.length() && name.starts_with(WX_PREFIX) &&
+        std::isupper(static_cast<unsigned char>(name[WX_PREFIX.length()])))
     {
-        return name.substr(2);
+        return name.substr(WX_PREFIX.length());
     }
-    if (name.size() > 3 && name.starts_with("kwx") &&
-        std::isupper(static_cast<unsigned char>(name[3])))
+    if (name.size() > KWX_PREFIX.length() && name.starts_with(KWX_PREFIX) &&
+        std::isupper(static_cast<unsigned char>(name[KWX_PREFIX.length()])))
     {
-        return name.substr(3);
+        return name.substr(KWX_PREFIX.length());
     }
     return name;
 }
@@ -153,7 +160,7 @@ static std::string
                                                                "wxWindow",         "wxControl",
                                                                "wxTopLevelWindow", "wxSizer" };
     std::string current = class_name;
-    std::flat_set<std::string> visited;
+    std::set<std::string> visited;
     while (true)
     {
         const std::unordered_map<std::string, std::string>::const_iterator iter =
@@ -638,10 +645,10 @@ void JuliaEmitter::GenerateEvents(const ParsedFFI& parsed_ffi, const fs::path& o
 
     std::vector<EventDecl> sorted = parsed_ffi.events;
     std::ranges::sort(sorted,
-                       [](const EventDecl& lhs, const EventDecl& rhs)
-                       {
-                           return lhs.event_name < rhs.event_name;
-                       });
+                      [](const EventDecl& lhs, const EventDecl& rhs)
+                      {
+                          return lhs.event_name < rhs.event_name;
+                      });
 
     for (const auto& event: sorted)
     {
@@ -670,10 +677,10 @@ void JuliaEmitter::GenerateKeys(const ParsedFFI& parsed_ffi, const fs::path& out
 
     std::vector<KeyDecl> sorted = parsed_ffi.keys;
     std::ranges::sort(sorted,
-                       [](const KeyDecl& lhs, const KeyDecl& rhs)
-                       {
-                           return lhs.key_name < rhs.key_name;
-                       });
+                      [](const KeyDecl& lhs, const KeyDecl& rhs)
+                      {
+                          return lhs.key_name < rhs.key_name;
+                      });
 
     for (const auto& key_item: sorted)
     {
@@ -702,10 +709,10 @@ void JuliaEmitter::GenerateConstants(const ParsedFFI& parsed_ffi, const fs::path
 
     std::vector<ConstantDecl> sorted = parsed_ffi.constants;
     std::ranges::sort(sorted,
-                       [](const ConstantDecl& lhs, const ConstantDecl& rhs)
-                       {
-                           return lhs.export_name < rhs.export_name;
-                       });
+                      [](const ConstantDecl& lhs, const ConstantDecl& rhs)
+                      {
+                          return lhs.export_name < rhs.export_name;
+                      });
 
     for (const auto& constant: sorted)
     {

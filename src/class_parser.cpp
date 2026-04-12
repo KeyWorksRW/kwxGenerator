@@ -14,9 +14,12 @@
 #include <iostream>
 #include <locale>
 #include <string>
+#include <string_view>
 #include <unordered_set>
 
 // Named constants for magic strings used in function parsing.
+constexpr std::string_view WX_PREFIX { "wx" };
+constexpr std::string_view KWX_PREFIX { "kwx" };
 constexpr const char* MACRO_TCLASS = "TClass";
 constexpr const char* MACRO_TSELF = "TSelf";
 constexpr const char* METHOD_DELETE = "Delete";
@@ -213,9 +216,10 @@ static size_t FindFuncParenOpen(const std::string& line, size_t semicolon_pos)
     if (underscore != std::string::npos)
     {
         const std::string candidate_class = func_name.substr(0, underscore);
-        const bool has_wx_prefix = candidate_class.size() >= 2 && candidate_class.starts_with("wx");
-        const bool has_kwx_prefix =
-            candidate_class.size() >= 3 && candidate_class.starts_with("kwx");
+        const bool has_wx_prefix =
+            candidate_class.size() >= WX_PREFIX.length() && candidate_class.starts_with(WX_PREFIX);
+        const bool has_kwx_prefix = candidate_class.size() >= KWX_PREFIX.length() &&
+                                    candidate_class.starts_with(KWX_PREFIX);
 
         if (has_wx_prefix || has_kwx_prefix)
         {
@@ -224,8 +228,9 @@ static size_t FindFuncParenOpen(const std::string& line, size_t semicolon_pos)
             decl_out.method_name = func_name.substr(underscore + 1);
         }
         else if (!current_class.empty() &&
-                 (current_class == "wx" + candidate_class ||
-                  current_class == "kwx" + candidate_class || current_class == candidate_class))
+                 (current_class == std::string { WX_PREFIX } + candidate_class ||
+                  current_class == std::string { KWX_PREFIX } + candidate_class ||
+                  current_class == candidate_class))
         {
             // Shortened prefix convention (e.g., BitmapDataObject_Delete inside the
             // wxBitmapDataObject class block).  Map to the canonical class name.

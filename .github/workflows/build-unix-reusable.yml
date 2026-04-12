@@ -26,10 +26,10 @@ jobs:
       SCCACHE_DIR: ${{github.workspace}}/.sccache
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Install unzip (required by get-cmake)
-      if: inputs.runner-type != 'self-hosted'
+      if: ${{ inputs.runner-type != 'self-hosted' }}
       run: sudo apt-get update && sudo apt-get install -y unzip
 
     - name: Setup CMake 3.30+ and Ninja
@@ -40,16 +40,20 @@ jobs:
 
     - run: mkdir ${{github.workspace}}/build
 
-    - name: Install dependencies
-      if: inputs.runner-type != 'self-hosted'
+    - name: Install LLVM Clang 21 (GitHub-hosted)
+      if: ${{ inputs.runner-type != 'self-hosted' }}
       run: |
         sudo apt-get update
-        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-        sudo add-apt-repository 'deb http://apt.llvm.org/noble/ llvm-toolchain-noble main'
-        sudo apt-get update
-        sudo apt-get install -y clang-20
-        clang-20 --version
-        cmake --version
+        wget https://apt.llvm.org/llvm.sh
+        chmod +x llvm.sh
+        sudo ./llvm.sh 21
+        # Create unversioned symlinks so CMake uses the same compiler name
+        # on both GitHub-hosted (clang-21) and self-hosted (clang v22)
+        sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-21 100
+        sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-21 100
+
+    - name: Verify clang
+      run: clang++ --version
 
     - name: Setup sccache
       uses: mozilla-actions/sccache-action@v0.0.9
@@ -59,7 +63,12 @@ jobs:
     # partial/mismatched source files.
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{inputs.build-type}} -DCMAKE_C_COMPILER=clang-20 -DCMAKE_CXX_COMPILER=clang++-20
+      run: >
+        cmake -B ${{github.workspace}}/build
+        -DCMAKE_BUILD_TYPE=${{inputs.build-type}}
+        -GNinja
+        -DCMAKE_C_COMPILER=clang
+        -DCMAKE_CXX_COMPILER=clang++
 
     - name: Build kwxgen
       run: cmake --build ${{github.workspace}}/build -j$(nproc) --config ${{inputs.build-type}} --target kwxgen

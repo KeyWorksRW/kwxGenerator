@@ -52,9 +52,10 @@ static std::string GoConstantExpr(const ConstantDecl& decl)
 //                                       classes collide with their wx* counterparts)
 static std::string StripPrefix(const std::string& name)
 {
-    if (name.starts_with("wx") && std::isupper(static_cast<unsigned char>(name[sizeof("wx") - 1])))
+    if (name.starts_with(WX_PREFIX) &&
+        std::isupper(static_cast<unsigned char>(name[WX_PREFIX.length()])))
     {
-        const std::string stripped = name.substr(sizeof("wx") - 1);
+        const std::string stripped = name.substr(WX_PREFIX.length());
         // If stripping 'wx' leaves a name starting with 'New', it will collide
         // with NewFoo() constructor functions emitted for other wx* classes.
         // e.g. wxNewBitmapButton → keep as WxNewBitmapButton.
@@ -66,9 +67,10 @@ static std::string StripPrefix(const std::string& name)
     }
     // kwx* classes: capitalise to "Kwx" rather than stripping, so that
     // kwxDropTarget → KwxDropTarget ≠ DropTarget (from wxDropTarget).
-    if (name.starts_with("kwx") && std::isupper(static_cast<unsigned char>(name[sizeof("kwx") - 1])))
+    if (name.starts_with(KWX_PREFIX) &&
+        std::isupper(static_cast<unsigned char>(name[KWX_PREFIX.length()])))
     {
-        return "Kwx" + name.substr(sizeof("kwx") - 1);
+        return "Kwx" + name.substr(KWX_PREFIX.length());
     }
     return name;
 }
@@ -79,9 +81,10 @@ static std::string StripPrefix(const std::string& name)
 static std::string GoFileName(const std::string& class_name)
 {
     std::string stripped = class_name;
-    if (class_name.starts_with("wx") && std::isupper(static_cast<unsigned char>(class_name[sizeof("wx") - 1])))
+    if (class_name.starts_with(WX_PREFIX) &&
+        std::isupper(static_cast<unsigned char>(class_name[WX_PREFIX.length()])))
     {
-        stripped = class_name.substr(sizeof("wx") - 1);
+        stripped = class_name.substr(WX_PREFIX.length());
     }
     return ToLower(stripped) + "_gen.go";
 }
@@ -1137,13 +1140,13 @@ static void EmitFreeFunction(std::ostream& output, const FunctionDecl& func_decl
 {
     // Strip kwx/wx prefix and capitalize for an exported Go identifier.
     std::string name = func_decl.method_name;
-    if (name.starts_with("kwx"))
+    if (name.starts_with(KWX_PREFIX))
     {
-        name = Capitalize(name.substr(sizeof("kwx") - 1));
+        name = Capitalize(name.substr(KWX_PREFIX.length()));
     }
-    else if (name.starts_with("wx"))
+    else if (name.starts_with(WX_PREFIX))
     {
-        name = Capitalize(name.substr(sizeof("wx") - 1));
+        name = Capitalize(name.substr(WX_PREFIX.length()));
     }
     else
     {
@@ -1398,10 +1401,10 @@ void GoEmitter::GenerateConstants(const ParsedFFI& parsed_ffi, const fs::path& o
     // Sort constants by name for stable output
     std::vector<ConstantDecl> sorted = parsed_ffi.constants;
     std::ranges::sort(sorted,
-                       [](const ConstantDecl& left, const ConstantDecl& right)
-                       {
-                           return left.constant_name < right.constant_name;
-                       });
+                      [](const ConstantDecl& left, const ConstantDecl& right)
+                      {
+                          return left.constant_name < right.constant_name;
+                      });
 
     writer << "var (\n";
     for (const auto& constant: sorted)
@@ -1437,10 +1440,10 @@ void GoEmitter::GenerateEvents(const ParsedFFI& parsed_ffi, const fs::path& out_
     // Sort events by name for stable output
     std::vector<EventDecl> sorted = parsed_ffi.events;
     std::ranges::sort(sorted,
-                       [](const EventDecl& left, const EventDecl& right)
-                       {
-                           return left.event_name < right.event_name;
-                       });
+                      [](const EventDecl& left, const EventDecl& right)
+                      {
+                          return left.event_name < right.event_name;
+                      });
 
     writer << "var (\n";
     for (const auto& event: sorted)
@@ -1475,10 +1478,10 @@ void GoEmitter::GenerateKeys(const ParsedFFI& parsed_ffi, const fs::path& out_di
     // Sort keys by name for stable output
     std::vector<KeyDecl> sorted = parsed_ffi.keys;
     std::ranges::sort(sorted,
-                       [](const KeyDecl& left, const KeyDecl& right)
-                       {
-                           return left.key_name < right.key_name;
-                       });
+                      [](const KeyDecl& left, const KeyDecl& right)
+                      {
+                          return left.key_name < right.key_name;
+                      });
 
     writer << "var (\n";
     for (const auto& k: sorted)

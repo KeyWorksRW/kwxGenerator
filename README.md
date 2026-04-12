@@ -26,29 +26,11 @@ The sections below detail the exact steps for each language.
 
 **Prerequisites:** CMake 3.30+, a C++23 compiler.
 
-**Step 1 — Build kwxgen in your CMakeLists.txt:**
-
-```cmake
-set(KWXFFI_DIR ${CMAKE_SOURCE_DIR}/extern/kwxFFI)
-
-add_subdirectory(${KWXFFI_DIR}/tools/kwxgen kwxgen-build)
-
-set(KWXFFI_HEADERS
-    ${KWXFFI_DIR}/include/kwx_classes.h
-    ${KWXFFI_DIR}/include/kwx_events.h
-    ${KWXFFI_DIR}/include/kwx_keys.h
-    ${KWXFFI_DIR}/include/kwx_constants.h
-)
-
 add_custom_command(
     OUTPUT  ${CMAKE_SOURCE_DIR}/wx/events_gen.go
             ${CMAKE_SOURCE_DIR}/wx/keys_gen.go
             ${CMAKE_SOURCE_DIR}/wx/constants_gen.go
     COMMAND kwxgen generate
-                --headers ${KWXFFI_DIR}/include
-                --defs    ${KWXFFI_DIR}/src/kwx_defs.cpp
-                --lang    go
-                --out     ${CMAKE_SOURCE_DIR}/wx/
     DEPENDS kwxgen ${KWXFFI_HEADERS}
     COMMENT "Generating Go bindings"
 )
