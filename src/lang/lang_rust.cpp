@@ -26,18 +26,17 @@ namespace fs = std::filesystem;
 // Build a C function name from a FunctionDecl.
 
 // Strip wx/kwx prefix: "wxButton" → "Button"
-static constexpr std::size_t KWX_PREFIX_LEN = 3;
-
 [[nodiscard]] static std::string StripPrefix(const std::string& name)
 {
-    if (name.size() > 2 && name.starts_with("wx") && std::isupper(name[2]))
+    if (name.size() > WX_PREFIX.length() && name.starts_with(WX_PREFIX) &&
+        std::isupper(name[WX_PREFIX.length()]))
     {
-        return name.substr(2);
+        return name.substr(WX_PREFIX.length());
     }
-    if (name.size() > KWX_PREFIX_LEN && name.starts_with("kwx") &&
-        std::isupper(name[KWX_PREFIX_LEN]))
+    if (name.size() > KWX_PREFIX.length() && name.starts_with(KWX_PREFIX) &&
+        std::isupper(name[KWX_PREFIX.length()]))
     {
-        return name.substr(KWX_PREFIX_LEN);
+        return name.substr(KWX_PREFIX.length());
     }
     return name;
 }
