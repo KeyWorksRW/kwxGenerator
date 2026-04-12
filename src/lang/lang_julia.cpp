@@ -13,8 +13,8 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
-#include <set>
 #include <iostream>
+#include <set>
 #include <tuple>
 #include <unordered_set>
 #include <vector>
@@ -44,8 +44,8 @@ static void EmitCCallWrapper(std::ostream& output, const CCallInfo& info,
     if (params.empty())
     {
         // Zero-argument function: use compact form
-        output << info.julia_name << "() = ccall((:" << info.c_name << ", libkwxFFI), " << info.return_type
-               << ", ())\n";
+        output << info.julia_name << "() = ccall((:" << info.c_name << ", libkwxFFI), "
+               << info.return_type << ", ())\n";
         return;
     }
 
@@ -113,7 +113,8 @@ static void EmitFunctionWrapper(std::ostream& output, const FunctionDecl& func)
         }
     }
 
-    EmitCCallWrapper(output, {.julia_name = cName, .c_name = cName, .return_type = retType}, jParams);
+    EmitCCallWrapper(output, { .julia_name = cName, .c_name = cName, .return_type = retType },
+                     jParams);
 }
 
 // Check if a function declaration looks valid (skip malformed ones).

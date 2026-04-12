@@ -343,7 +343,7 @@ inline std::vector<FortranParam> ExpandParamToFortran(const Param& p)
 
 // Collect all unique import symbols needed for a set of Fortran params + return type.
 inline std::set<std::string> CollectImports(const std::vector<FortranParam>& params,
-                                                 const FortranReturnInfo& retInfo)
+                                            const FortranReturnInfo& retInfo)
 {
     std::set<std::string> imports;
     if (!retInfo.import_sym.empty())

@@ -8,11 +8,11 @@
 #include "verify.h"
 
 #include <filesystem>
-#include <set>
 #include <format>
 #include <fstream>
 #include <iostream>
 #include <locale>
+#include <set>
 #include <sstream>
 
 namespace fs = std::filesystem;
