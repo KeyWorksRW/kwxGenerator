@@ -13,9 +13,7 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
-#include <format>
-#include <iostream>
-#include <locale>
+#include <print>
 #include <set>
 #include <unordered_set>
 #include <vector>
@@ -381,7 +379,7 @@ void LuaJITEmitter::Generate(const ParsedFFI& ffi_data, const fs::path& out_dir)
     GenerateHelpers(out_dir);
     GenerateIdiomaticClasses(ffi_data, out_dir);
 
-    std::cerr << "LuaJIT: generated files in " << out_dir << "\n";
+    std::println(stderr, "LuaJIT: generated files in {}", out_dir.string());
 }
 
 VerifyResult LuaJITEmitter::Verify(const ParsedFFI& /* ffi_data */, const fs::path& /* out_dir */)
@@ -402,7 +400,7 @@ void LuaJITEmitter::GenerateEvents(const ParsedFFI& ffi_data, const fs::path& ou
     ConditionalFileWriter writer(path);
     if (!writer.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -424,9 +422,7 @@ void LuaJITEmitter::GenerateEvents(const ParsedFFI& ffi_data, const fs::path& ou
 
     writer << "]]\n";
 
-    static const std::locale user_locale("");
-    std::cerr << std::format(user_locale, "  kwxffi_events_gen.lua:       {:L} events\n",
-                             ffi_data.events.size());
+    std::println(stderr, "  kwxffi_events_gen.lua:       {:L} events", ffi_data.events.size());
 }
 
 // -------------------------------------------------------------------------
@@ -439,7 +435,7 @@ void LuaJITEmitter::GenerateKeys(const ParsedFFI& ffi_data, const fs::path& out_
     ConditionalFileWriter writer(path);
     if (!writer.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -461,9 +457,7 @@ void LuaJITEmitter::GenerateKeys(const ParsedFFI& ffi_data, const fs::path& out_
 
     writer << "]]\n";
 
-    static const std::locale user_locale("");
-    std::cerr << std::format(user_locale, "  kwxffi_keys_gen.lua:         {:L} keys\n",
-                             ffi_data.keys.size());
+    std::println(stderr, "  kwxffi_keys_gen.lua:         {:L} keys", ffi_data.keys.size());
 }
 
 // -------------------------------------------------------------------------
@@ -476,7 +470,7 @@ void LuaJITEmitter::GenerateConstants(const ParsedFFI& ffi_data, const fs::path&
     ConditionalFileWriter writer(path);
     if (!writer.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -500,9 +494,7 @@ void LuaJITEmitter::GenerateConstants(const ParsedFFI& ffi_data, const fs::path&
 
     writer << "]]\n";
 
-    static const std::locale user_locale("");
-    std::cerr << std::format(user_locale, "  kwxffi_constants_gen.lua:    {:L} constants\n",
-                             ffi_data.constants.size());
+    std::println(stderr, "  kwxffi_constants_gen.lua:    {:L} constants", ffi_data.constants.size());
 }
 
 // -------------------------------------------------------------------------
@@ -515,13 +507,14 @@ void LuaJITEmitter::GenerateClasses(const ParsedFFI& ffi_data, const fs::path& o
     ConditionalFileWriter writer(path);
     if (!writer.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
     WriteGeneratedHeader(writer, "--", false);
     writer << "local ffi = require(\"ffi\")\n\n";
 
+    size_t class_count = 0;
     size_t method_count = 0;
     size_t skipped_count = 0;
 
@@ -532,6 +525,7 @@ void LuaJITEmitter::GenerateClasses(const ParsedFFI& ffi_data, const fs::path& o
             continue;
         }
 
+        ++class_count;
         writer << "-- " << class_decl.name << "\n";
         writer << "ffi.cdef[[\n";
 
@@ -547,13 +541,15 @@ void LuaJITEmitter::GenerateClasses(const ParsedFFI& ffi_data, const fs::path& o
         }
 
         writer << "]]\n\n";
-        if (skipped_count > 0)
-        {
-            std::cerr << " (" << skipped_count << " skipped)";
-        }
-        std::cerr << "\n";
     }
-    std::cerr << "\n";
+
+    std::print(stderr, "  kwxffi_classes_gen.lua:      {:L} classes, {:L} methods",
+               class_count, method_count);
+    if (skipped_count > 0)
+    {
+        std::print(stderr, " ({} skipped)", skipped_count);
+    }
+    std::println(stderr, "");
 }
 
 // -------------------------------------------------------------------------
@@ -571,7 +567,7 @@ void LuaJITEmitter::GenerateFreeFunctions(const ParsedFFI& ffi_data, const fs::p
     ConditionalFileWriter writer(path);
     if (!writer.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -592,7 +588,7 @@ void LuaJITEmitter::GenerateFreeFunctions(const ParsedFFI& ffi_data, const fs::p
 
     writer << "]]\n";
 
-    std::cerr << "  kwxffi_freefuncs_gen.lua:    " << count << " free functions\n";
+    std::println(stderr, "  kwxffi_freefuncs_gen.lua:    {} free functions", count);
 }
 
 // -------------------------------------------------------------------------
@@ -605,7 +601,7 @@ void LuaJITEmitter::GenerateInit(const fs::path& out_dir, const std::string& /* 
     ConditionalFileWriter writer(path);
     if (!writer.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -624,7 +620,7 @@ void LuaJITEmitter::GenerateInit(const fs::path& out_dir, const std::string& /* 
     // are available via ffi.C (the exe's own export table).
     writer << "return require(\"ffi\").C\n";
 
-    std::cerr << "  kwxffi_gen.lua:              main entry point\n";
+    std::println(stderr, "  kwxffi_gen.lua:              main entry point");
 }
 
 // =========================================================================
@@ -641,7 +637,7 @@ void LuaJITEmitter::GenerateHelpers(const fs::path& out_dir)
     ConditionalFileWriter writer(path);
     if (!writer.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -656,12 +652,11 @@ void LuaJITEmitter::GenerateHelpers(const fs::path& out_dir)
     writer << "\n";
 
     // wxString bridge
-    writer << "--- Create a wxString from a Lua string.\n";
+    writer << "--- Create a wxString from a Lua string. nil is treated as empty string.\n";
     writer << "--- @param str string|nil\n";
-    writer << "--- @return cdata|nil wxString pointer\n";
+    writer << "--- @return cdata wxString pointer\n";
     writer << "function M.wxs(str)\n";
-    writer << "    if str == nil then return nil end\n";
-    writer << "    return C.wxString_CreateUTF8(str)\n";
+    writer << "    return C.wxString_CreateUTF8(str or \"\")\n";
     writer << "end\n";
     writer << "\n";
 
@@ -713,7 +708,7 @@ void LuaJITEmitter::GenerateHelpers(const fs::path& out_dir)
 
     writer << "return M\n";
 
-    std::cerr << "  kwxffi_helpers_gen.lua:      helper utilities\n";
+    std::println(stderr, "  kwxffi_helpers_gen.lua:      helper utilities");
 }
 
 // -------------------------------------------------------------------------
@@ -1070,7 +1065,7 @@ void LuaJITEmitter::GenerateIdiomaticClasses(const ParsedFFI& ffi_data, const fs
     ConditionalFileWriter master(master_path);
     if (!master.is_open())
     {
-        std::cerr << "Error: cannot create " << master_path << "\n";
+        std::println(stderr, "Error: cannot create {}", master_path.string());
         return;
     }
     WriteGeneratedHeader(master, "--", false);
@@ -1108,7 +1103,7 @@ void LuaJITEmitter::GenerateIdiomaticClasses(const ParsedFFI& ffi_data, const fs
         ConditionalFileWriter writer(file_path);
         if (!writer.is_open())
         {
-            std::cerr << "Error: cannot create " << file_path << "\n";
+            std::println(stderr, "Error: cannot create {}", file_path.string());
             continue;
         }
         ++class_count;
@@ -1130,13 +1125,12 @@ void LuaJITEmitter::GenerateIdiomaticClasses(const ParsedFFI& ffi_data, const fs
 
     master << "\nreturn M\n";
 
-    std::cerr << "  kwxffi_idiomatic_gen.lua:    " << class_count << " classes, " << method_count
-              << " methods";
+    std::print(stderr, "  kwxffi_idiomatic_gen.lua:    {} classes, {} methods", class_count, method_count);
     if (skipped_count > 0)
     {
-        std::cerr << " (" << skipped_count << " skipped)";
+        std::print(stderr, " ({} skipped)", skipped_count);
     }
-    std::cerr << "\n";
+    std::println(stderr, "");
 }
 
 // NOLINTEND(readability-magic-string)

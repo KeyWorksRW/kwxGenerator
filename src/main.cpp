@@ -48,10 +48,9 @@
 #include "verify.h"
 
 #include <filesystem>
-#include <format>
 #include <iostream>
-#include <locale>
 #include <memory>
+#include <print>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -82,20 +81,18 @@ static constexpr std::string_view STDOUT_MARKER = "-";
 
 static void PrintUsage(const char* prog_name)
 {
-    std::cerr << "Usage:\n"
-              << "  " << prog_name << " parse    --headers <dir> --defs <file> [--out <file>]\n"
-              << "  " << prog_name
-              << " generate --headers <dir> --defs <file> --lang <lang> --out <dir> [--exports]\n"
-              << "  " << prog_name
-              << " verify   --headers <dir> --defs <file> --lang <lang> --dir <dir>\n"
-              << "  Available langs: fortran go julia lua perl rust\n"
-              << "  " << prog_name << " exports  --headers <dir> --defs <file> --out <dir>\n"
-              << "  " << prog_name << " diff     --headers <dir> --manifest <file>\n"
-              << "  " << prog_name << " langs\n"
-              << "\nGlobal options (for generate/verify):\n"
-              << "  --libname <name>   Runtime shared-library name in generated bindings (default: "
-                 "kwxFFI)\n"
-              << "  --exports          Also generate platform export files (.def/.map/.exp)\n";
+    std::println(stderr, "Usage:");
+    std::println(stderr, "  {} parse    --headers <dir> --defs <file> [--out <file>]", prog_name);
+    std::println(stderr, "  {} generate --headers <dir> --defs <file> --lang <lang> --out <dir> [--exports]", prog_name);
+    std::println(stderr, "  {} verify   --headers <dir> --defs <file> --lang <lang> --dir <dir>", prog_name);
+    std::println(stderr, "  Available langs: fortran go julia lua perl rust");
+    std::println(stderr, "  {} exports  --headers <dir> --defs <file> --out <dir>", prog_name);
+    std::println(stderr, "  {} diff     --headers <dir> --manifest <file>", prog_name);
+    std::println(stderr, "  {} langs", prog_name);
+    std::println(stderr, "");
+    std::println(stderr, "Global options (for generate/verify):");
+    std::println(stderr, "  --libname <name>   Runtime shared-library name in generated bindings (default: kwxFFI)");
+    std::println(stderr, "  --exports          Also generate platform export files (.def/.map/.exp)");
 }
 
 struct Args
@@ -128,12 +125,11 @@ static bool LoadConfigFile(Args& args)
         args, config_path.string(), buffer);
     if (errc)
     {
-        std::cerr << "Error reading " << config_path << ": " << glz::format_error(errc, buffer)
-                  << "\n";
+        std::println(stderr, "Error reading {}: {}", config_path.string(), glz::format_error(errc, buffer));
         return false;
     }
 
-    std::cerr << "Loaded config from " << config_path << "\n";
+    std::println(stderr, "Loaded config from {}", config_path.string());
     return true;
 }
 
@@ -184,7 +180,7 @@ static bool LoadConfigFile(Args& args)
         }
         else
         {
-            std::cerr << "Unknown argument: " << argument << "\n";
+            std::println(stderr, "Unknown argument: {}", argument);
             return false;
         }
     }
@@ -226,7 +222,6 @@ static LanguageEmitter* FindEmitter(const std::vector<std::unique_ptr<LanguageEm
 
 static ParsedFFI RunParsers(const fs::path& headers_dir, const fs::path& defs_file)
 {
-    static const std::locale user_locale("");
     ParsedFFI parsed_ffi;
 
     // Parse events
@@ -234,11 +229,11 @@ static ParsedFFI RunParsers(const fs::path& headers_dir, const fs::path& defs_fi
     if (fs::exists(events_file))
     {
         parsed_ffi.events = ParseEvents(events_file);
-        std::cerr << std::format(user_locale, "  Events:         {:L}\n", parsed_ffi.events.size());
+        std::println(stderr, "  Events:         {:L}", parsed_ffi.events.size());
     }
     else
     {
-        std::cerr << "  Warning: " << events_file << " not found\n";
+        std::println(stderr, "  Warning: {} not found", events_file.string());
     }
 
     // Parse keys
@@ -246,23 +241,22 @@ static ParsedFFI RunParsers(const fs::path& headers_dir, const fs::path& defs_fi
     if (fs::exists(keys_file))
     {
         parsed_ffi.keys = ParseKeys(keys_file);
-        std::cerr << std::format(user_locale, "  Keys:           {:L}\n", parsed_ffi.keys.size());
+        std::println(stderr, "  Keys:           {:L}", parsed_ffi.keys.size());
     }
     else
     {
-        std::cerr << "  Warning: " << keys_file << " not found\n";
+        std::println(stderr, "  Warning: {} not found", keys_file.string());
     }
 
     // Parse defs constants
     if (fs::exists(defs_file))
     {
         parsed_ffi.constants = ParseDefs(defs_file);
-        std::cerr << std::format(user_locale, "  Defs constants: {:L}\n",
-                                 parsed_ffi.constants.size());
+        std::println(stderr, "  Defs constants: {:L}", parsed_ffi.constants.size());
     }
     else
     {
-        std::cerr << "  Warning: " << defs_file << " not found\n";
+        std::println(stderr, "  Warning: {} not found", defs_file.string());
     }
 
     // Parse constants header (free functions + WXFFI_EXPORT constants)
@@ -276,15 +270,13 @@ static ParsedFFI RunParsers(const fs::path& headers_dir, const fs::path& defs_fi
         {
             parsed_ffi.constants.push_back(std::move(constant));
         }
-        std::cerr << std::format(user_locale, "  Free functions: {:L}\n",
-                                 parsed_ffi.free_functions.size());
-        std::cerr << std::format(user_locale,
-                                 "  Header consts:  {:L} (merged into constants total: {:L})\n",
-                                 constants_result.constants.size(), parsed_ffi.constants.size());
+        std::println(stderr, "  Free functions: {:L}", parsed_ffi.free_functions.size());
+        std::println(stderr, "  Header consts:  {:L} (merged into constants total: {:L})",
+                     constants_result.constants.size(), parsed_ffi.constants.size());
     }
     else
     {
-        std::cerr << "  Warning: " << constants_file << " not found\n";
+        std::println(stderr, "  Warning: {} not found", constants_file.string());
     }
 
     // Parse classes
@@ -303,7 +295,7 @@ static ParsedFFI RunParsers(const fs::path& headers_dir, const fs::path& defs_fi
     }
     else
     {
-        std::cerr << "  Warning: " << classes_file << " not found\n";
+        std::println(stderr, "  Warning: {} not found", classes_file.string());
     }
 
     return parsed_ffi;
@@ -312,6 +304,7 @@ static ParsedFFI RunParsers(const fs::path& headers_dir, const fs::path& defs_fi
 int main(int argc, char* argv[])
 {
     Args args;
+    std::locale::global(std::locale(""));
     std::ignore = LoadConfigFile(args);
     if (!ParseArgs(argc, argv, args))
     {
@@ -323,11 +316,11 @@ int main(int argc, char* argv[])
     {
         if (args.headers_dir.empty() || args.defs_file.empty())
         {
-            std::cerr << "Error: 'parse' requires --headers and --defs\n";
+            std::println(stderr, "Error: 'parse' requires --headers and --defs");
             return 1;
         }
 
-        std::cerr << "Parsing...\n";
+        std::println(stderr, "Parsing...");
         ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
         parsed_ffi.lib_name = args.lib_name;
 
@@ -343,7 +336,7 @@ int main(int argc, char* argv[])
             {
                 return 1;
             }
-            std::cerr << "JSON written to " << args.out_path << "\n";
+            std::println(stderr, "JSON written to {}", args.out_path);
         }
         return 0;
     }
@@ -352,17 +345,17 @@ int main(int argc, char* argv[])
     {
         if (args.headers_dir.empty() || args.defs_file.empty())
         {
-            std::cerr << "Error: 'generate' requires --headers and --defs\n";
+            std::println(stderr, "Error: 'generate' requires --headers and --defs");
             return 1;
         }
         if (args.lang.empty())
         {
-            std::cerr << "Error: 'generate' requires --lang\n";
+            std::println(stderr, "Error: 'generate' requires --lang");
             return 1;
         }
         if (args.out_path.empty())
         {
-            std::cerr << "Error: 'generate' requires --out\n";
+            std::println(stderr, "Error: 'generate' requires --out");
             return 1;
         }
 
@@ -370,21 +363,21 @@ int main(int argc, char* argv[])
         LanguageEmitter* const emitter = FindEmitter(emitters, args.lang);
         if (!emitter)
         {
-            std::cerr << "Error: unknown language '" << args.lang << "'\n";
-            std::cerr << "Available: ";
+            std::println(stderr, "Error: unknown language '{}'", args.lang);
+            std::print(stderr, "Available:");
             for (const auto& entry: emitters)
             {
-                std::cerr << entry->Name() << " ";
+                std::print(stderr, " {}", entry->Name());
             }
-            std::cerr << "\n";
+            std::println(stderr, "");
             return 1;
         }
 
-        std::cerr << "Parsing...\n";
+        std::println(stderr, "Parsing...");
         ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
         parsed_ffi.lib_name = args.lib_name;
 
-        std::cerr << "Generating " << args.lang << " bindings...\n";
+        std::println(stderr, "Generating {} bindings...", args.lang);
         emitter->Generate(parsed_ffi, args.out_path);
 
         if (args.exports)
@@ -399,17 +392,17 @@ int main(int argc, char* argv[])
     {
         if (args.headers_dir.empty() || args.defs_file.empty())
         {
-            std::cerr << "Error: 'verify' requires --headers and --defs\n";
+            std::println(stderr, "Error: 'verify' requires --headers and --defs");
             return 1;
         }
         if (args.lang.empty())
         {
-            std::cerr << "Error: 'verify' requires --lang\n";
+            std::println(stderr, "Error: 'verify' requires --lang");
             return 1;
         }
         if (args.verify_dir.empty())
         {
-            std::cerr << "Error: 'verify' requires --dir\n";
+            std::println(stderr, "Error: 'verify' requires --dir");
             return 1;
         }
 
@@ -417,7 +410,7 @@ int main(int argc, char* argv[])
         LanguageEmitter* const emitter = FindEmitter(emitters, args.lang);
         if (!emitter)
         {
-            std::cerr << "Error: unknown language '" << args.lang << "'\n";
+            std::println(stderr, "Error: unknown language '{}'", args.lang);
             return 1;
         }
 
@@ -426,49 +419,49 @@ int main(int argc, char* argv[])
         std::ignore = fs::remove_all(temp_dir);
         std::ignore = fs::create_directories(temp_dir);
 
-        std::cerr << "Parsing...\n";
+        std::println(stderr, "Parsing...");
         ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
         parsed_ffi.lib_name = args.lib_name;
 
-        std::cerr << "Generating to temp dir: " << temp_dir << "\n";
+        std::println(stderr, "Generating to temp dir: {}", temp_dir.string());
         emitter->Generate(parsed_ffi, temp_dir);
 
-        std::cerr << "Verifying against: " << args.verify_dir << "\n";
+        std::println(stderr, "Verifying against: {}", args.verify_dir);
         const VerifyResult verify_result = VerifyGeneratedFiles(temp_dir, args.verify_dir);
 
         if (verify_result.success)
         {
-            std::cout << "Verify: OK \u2014 all generated files match.\n";
+            std::println("Verify: OK \u2014 all generated files match.");
         }
         else
         {
-            std::cout << "Verify: DIFFERENCES FOUND\n";
+            std::println("Verify: DIFFERENCES FOUND");
             for (const auto& message: verify_result.messages)
             {
-                std::cout << "  " << message << "\n";
+                std::println("  {}", message);
             }
             if (!verify_result.missing_files.empty())
             {
-                std::cout << "  Missing files in generated output:\n";
+                std::println("  Missing files in generated output:");
                 for (const auto& file_path: verify_result.missing_files)
                 {
-                    std::cout << "    " << file_path << "\n";
+                    std::println("    {}", file_path);
                 }
             }
             if (!verify_result.extra_files.empty())
             {
-                std::cout << "  Extra files in generated output:\n";
+                std::println("  Extra files in generated output:");
                 for (const auto& file_path: verify_result.extra_files)
                 {
-                    std::cout << "    " << file_path << "\n";
+                    std::println("    {}", file_path);
                 }
             }
             if (!verify_result.mismatched_files.empty())
             {
-                std::cout << "  Mismatched files:\n";
+                std::println("  Mismatched files:");
                 for (const auto& file_path: verify_result.mismatched_files)
                 {
-                    std::cout << "    " << file_path << "\n";
+                    std::println("    {}", file_path);
                 }
             }
         }
@@ -483,16 +476,16 @@ int main(int argc, char* argv[])
     {
         if (args.headers_dir.empty() || args.defs_file.empty())
         {
-            std::cerr << "Error: 'exports' requires --headers and --defs\n";
+            std::println(stderr, "Error: 'exports' requires --headers and --defs");
             return 1;
         }
         if (args.out_path.empty())
         {
-            std::cerr << "Error: 'exports' requires --out\n";
+            std::println(stderr, "Error: 'exports' requires --out");
             return 1;
         }
 
-        std::cerr << "Parsing...\n";
+        std::println(stderr, "Parsing...");
         ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
         parsed_ffi.lib_name = args.lib_name;
 
@@ -502,22 +495,22 @@ int main(int argc, char* argv[])
 
     if (args.command == CMD_DIFF)
     {
-        std::cerr << "Error: 'diff' is not yet implemented\n";
+        std::println(stderr, "Error: 'diff' is not yet implemented");
         return 1;
     }
 
     if (args.command == CMD_LANGS)
     {
         const std::vector<std::unique_ptr<LanguageEmitter>> emitters = CreateEmitters();
-        std::cout << "Available language backends:\n";
+        std::println("Available language backends:");
         for (const auto& emitter: emitters)
         {
-            std::cout << "  " << emitter->Name() << "\n";
+            std::println("  {}", emitter->Name());
         }
         return 0;
     }
 
-    std::cerr << "Unknown command: " << args.command << "\n";
+    std::println(stderr, "Unknown command: {}", args.command);
     PrintUsage(argv[0]);
     return 1;
 }

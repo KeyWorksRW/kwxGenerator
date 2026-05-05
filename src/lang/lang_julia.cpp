@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
-#include <iostream>
+#include <print>
 #include <set>
 #include <tuple>
 #include <unordered_set>
@@ -271,8 +271,7 @@ static std::vector<JuliaIdiomParam> ConvertToIdiomParams(const Param& param, boo
         const std::vector<std::string> names = JuliaSplitMacroArg(param.macro_arg);
         if (names.size() < 2)
         {
-            std::cerr << "Warning: " << param.macro_name << "(" << param.macro_arg
-                      << ") expected 2 names, got " << names.size() << "\n";
+            std::println(stderr, "Warning: {}({}) expected 2 names, got {}", param.macro_name, param.macro_arg, names.size());
             return result;
         }
         result.push_back({ names[0] + "::Integer", "Cint(" + names[0] + ")", "", "" });
@@ -615,7 +614,7 @@ void JuliaEmitter::Generate(const ParsedFFI& parsed_ffi, const fs::path& outDir)
     GenerateModule(outDir, parsed_ffi.lib_name);
     GenerateIdiomaticClasses(parsed_ffi, outDir);  // idiomatic Julia wrappers
 
-    std::cerr << "Julia: generated files in " << outDir << "\n";
+    std::println(stderr, "Julia: generated files in {}", outDir.string());
 }
 
 VerifyResult JuliaEmitter::Verify(const ParsedFFI& /* parsed_ffi */,
@@ -637,7 +636,7 @@ void JuliaEmitter::GenerateEvents(const ParsedFFI& parsed_ffi, const fs::path& o
     ConditionalFileWriter output(path);
     if (!output.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -656,7 +655,7 @@ void JuliaEmitter::GenerateEvents(const ParsedFFI& parsed_ffi, const fs::path& o
                << ", libkwxFFI), Cint, ())\n";
     }
 
-    std::cerr << "  events_gen.jl:       " << parsed_ffi.events.size() << " events\n";
+    std::println(stderr, "  events_gen.jl:       {} events", parsed_ffi.events.size());
 }
 
 // -------------------------------------------------------------------------
@@ -669,7 +668,7 @@ void JuliaEmitter::GenerateKeys(const ParsedFFI& parsed_ffi, const fs::path& out
     ConditionalFileWriter output(path);
     if (!output.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -688,7 +687,7 @@ void JuliaEmitter::GenerateKeys(const ParsedFFI& parsed_ffi, const fs::path& out
                << ", libkwxFFI), Cint, ())\n";
     }
 
-    std::cerr << "  keys_gen.jl:         " << parsed_ffi.keys.size() << " keys\n";
+    std::println(stderr, "  keys_gen.jl:         {} keys", parsed_ffi.keys.size());
 }
 
 // -------------------------------------------------------------------------
@@ -701,7 +700,7 @@ void JuliaEmitter::GenerateConstants(const ParsedFFI& parsed_ffi, const fs::path
     ConditionalFileWriter output(path);
     if (!output.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -723,7 +722,7 @@ void JuliaEmitter::GenerateConstants(const ParsedFFI& parsed_ffi, const fs::path
                << ", libkwxFFI), " << retType << ", ())\n";
     }
 
-    std::cerr << "  constants_gen.jl:    " << parsed_ffi.constants.size() << " constants\n";
+    std::println(stderr, "  constants_gen.jl:    {} constants", parsed_ffi.constants.size());
 }
 
 void JuliaEmitter::GenerateClasses(const ParsedFFI& parsed_ffi, const fs::path& outDir)
@@ -732,7 +731,7 @@ void JuliaEmitter::GenerateClasses(const ParsedFFI& parsed_ffi, const fs::path& 
     ConditionalFileWriter output(path);
     if (!output.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -764,12 +763,12 @@ void JuliaEmitter::GenerateClasses(const ParsedFFI& parsed_ffi, const fs::path& 
         output << "\n";
     }
 
-    std::cerr << "  classes_gen.jl:      " << methodCount << " methods";
+    std::print(stderr, "  classes_gen.jl:      {} methods", methodCount);
     if (skippedCount > 0)
     {
-        std::cerr << " (" << skippedCount << " skipped)";
+        std::print(stderr, " ({} skipped)", skippedCount);
     }
-    std::cerr << "\n";
+    std::println(stderr, "");
 }
 
 // -------------------------------------------------------------------------
@@ -782,7 +781,7 @@ void JuliaEmitter::GenerateFreeFunctions(const ParsedFFI& parsed_ffi, const fs::
     ConditionalFileWriter output(path);
     if (!output.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -800,7 +799,7 @@ void JuliaEmitter::GenerateFreeFunctions(const ParsedFFI& parsed_ffi, const fs::
         ++count;
     }
 
-    std::cerr << "  freefuncs_gen.jl:    " << count << " free functions\n";
+    std::println(stderr, "  freefuncs_gen.jl:    {} free functions", count);
 }
 
 // -------------------------------------------------------------------------
@@ -813,7 +812,7 @@ void JuliaEmitter::GenerateModule(const fs::path& outDir, const std::string& lib
     ConditionalFileWriter output(path);
     if (!output.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -827,7 +826,7 @@ void JuliaEmitter::GenerateModule(const fs::path& outDir, const std::string& lib
     output << "include(\"freefuncs_gen.jl\")\n";
     output << "\nend # module KwxFFI\n";
 
-    std::cerr << "  KwxFFI_gen.jl:       module definition\n";
+    std::println(stderr, "  KwxFFI_gen.jl:       module definition");
 }
 
 // -------------------------------------------------------------------------
@@ -1010,7 +1009,7 @@ void JuliaEmitter::GenerateIdiomaticClasses(const ParsedFFI& parsed_ffi, const f
     ConditionalFileWriter master(masterPath);
     if (!master.is_open())
     {
-        std::cerr << "Error: cannot create " << masterPath << "\n";
+        std::println(stderr, "Error: cannot create {}", masterPath.string());
         return;
     }
     master << "# Code generated by kwxgen. DO NOT EDIT.\n";
@@ -1048,7 +1047,7 @@ void JuliaEmitter::GenerateIdiomaticClasses(const ParsedFFI& parsed_ffi, const f
         ConditionalFileWriter output(filePath);
         if (!output.is_open())
         {
-            std::cerr << "Error: cannot create " << filePath << "\n";
+            std::println(stderr, "Error: cannot create {}", filePath.string());
             continue;
         }
         ++classCount;
@@ -1066,13 +1065,12 @@ void JuliaEmitter::GenerateIdiomaticClasses(const ParsedFFI& parsed_ffi, const f
         master << "include(\"" << fileName << "\")\n";
     }
 
-    std::cerr << "  wx_idiomatic_gen.jl: " << classCount << " classes, " << methodCount
-              << " methods";
+    std::print(stderr, "  wx_idiomatic_gen.jl: {} classes, {} methods", classCount, methodCount);
     if (skippedCount > 0)
     {
-        std::cerr << " (" << skippedCount << " skipped)";
+        std::print(stderr, " ({} skipped)", skippedCount);
     }
-    std::cerr << "\n";
+    std::println(stderr, "");
 }
 
 // NOLINTEND(readability-magic-string)

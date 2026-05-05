@@ -14,9 +14,7 @@
 #include <algorithm>
 #include <array>
 #include <filesystem>
-#include <format>
-#include <iostream>
-#include <locale>
+#include <print>
 #include <string_view>
 #include <vector>
 
@@ -216,7 +214,7 @@ void FortranEmitter::Generate(const ParsedFFI& ffi_data, const fs::path& outDir)
     GenerateEventsModule(ffi_data, outDir);
     GenerateDialogsModule(ffi_data, outDir);
 
-    std::cerr << "Fortran: generated all files in " << outDir << "\n";
+    std::println(stderr, "Fortran: generated all files in {}", outDir.string());
 }
 
 VerifyResult FortranEmitter::Verify(const ParsedFFI& /* ffi_data */, const fs::path& /* out_dir */)
@@ -233,7 +231,6 @@ VerifyResult FortranEmitter::Verify(const ParsedFFI& /* ffi_data */, const fs::p
 
 void FortranEmitter::GenerateEvents(const std::vector<EventDecl>& events, std::ostream& output)
 {
-    static const std::locale user_locale("");
     output << "    ! Events\n\n";
 
     for (const auto& event: events)
@@ -245,7 +242,7 @@ void FortranEmitter::GenerateEvents(const std::vector<EventDecl>& events, std::o
         output << "    end function\n\n";
     }
 
-    std::cerr << std::format(user_locale, "  Events:           {:L}\n", events.size());
+    std::println(stderr, "  Events:           {:L}", events.size());
 }
 
 // -------------------------------------------------------------------------
@@ -254,7 +251,6 @@ void FortranEmitter::GenerateEvents(const std::vector<EventDecl>& events, std::o
 
 void FortranEmitter::GenerateKeys(const std::vector<KeyDecl>& keys, std::ostream& output)
 {
-    static const std::locale user_locale("");
     output << "    ! Keys\n\n";
 
     for (const auto& key_decl: keys)
@@ -266,7 +262,7 @@ void FortranEmitter::GenerateKeys(const std::vector<KeyDecl>& keys, std::ostream
         output << "    end function\n\n";
     }
 
-    std::cerr << std::format(user_locale, "  Keys:             {:L}\n", keys.size());
+    std::println(stderr, "  Keys:             {:L}", keys.size());
 }
 
 // -------------------------------------------------------------------------
@@ -276,7 +272,6 @@ void FortranEmitter::GenerateKeys(const std::vector<KeyDecl>& keys, std::ostream
 void FortranEmitter::GenerateConstants(const std::vector<ConstantDecl>& constants,
                                        std::ostream& output)
 {
-    static const std::locale user_locale("");
     output << "    ! Constants\n\n";
 
     for (const auto& constant: constants)
@@ -301,7 +296,7 @@ void FortranEmitter::GenerateConstants(const std::vector<ConstantDecl>& constant
         output << "    end function\n\n";
     }
 
-    std::cerr << std::format(user_locale, "  Constants:        {:L}\n", constants.size());
+    std::println(stderr, "  Constants:        {:L}", constants.size());
 }
 
 // -------------------------------------------------------------------------
@@ -335,13 +330,12 @@ void FortranEmitter::GenerateClasses(const ParsedFFI& ffi_data, std::ostream& ou
         }
     }
 
-    static const std::locale user_locale("");
-    std::cerr << std::format(user_locale, "  Class methods:    {:L}", methodCount);
+    std::print(stderr, "  Class methods:    {:L}", methodCount);
     if (skippedCount > 0)
     {
-        std::cerr << std::format(user_locale, " ({:L} skipped)", skippedCount);
+        std::print(stderr, " ({:L} skipped)", skippedCount);
     }
-    std::cerr << "\n";
+    std::println(stderr, "");
 }
 
 // -------------------------------------------------------------------------
@@ -369,8 +363,7 @@ void FortranEmitter::GenerateFreeFunctions(const ParsedFFI& ffi_data, std::ostre
         ++count;
     }
 
-    static const std::locale user_locale("");
-    std::cerr << std::format(user_locale, "  Free functions:   {:L}\n", count);
+    std::println(stderr, "  Free functions:   {:L}", count);
 }
 
 // -------------------------------------------------------------------------
@@ -464,7 +457,7 @@ void FortranEmitter::GenerateTypes(const ParsedFFI& /* ffi_data */, const fs::pa
     }
 
     output << "end module kwx_types\n";
-    std::cerr << "  Generated kwx_types.f90\n";
+    std::println(stderr, "  Generated kwx_types.f90");
 }
 
 // -------------------------------------------------------------------------
@@ -559,7 +552,7 @@ contains
 
 end module wx_string
 )";
-    std::cerr << "  Generated wx_string.f90\n";
+    std::println(stderr, "  Generated wx_string.f90");
 }
 
 // -------------------------------------------------------------------------
@@ -640,7 +633,7 @@ void FortranEmitter::GenerateConstantsModule(const ParsedFFI& ffi_data, const fs
 
     output << "    end interface\n\n";
     output << "end module kwx_constants\n";
-    std::cerr << "  Generated kwx_constants.f90 (" << entries.size() << " entries)\n";
+    std::println(stderr, "  Generated kwx_constants.f90 ({} entries)", entries.size());
 }
 
 // -------------------------------------------------------------------------
@@ -865,7 +858,7 @@ contains
 
 end module wx_window
 )";
-    std::cerr << "  Generated wx_window.f90\n";
+    std::println(stderr, "  Generated wx_window.f90");
 }
 
 // -------------------------------------------------------------------------
@@ -1216,7 +1209,7 @@ contains
 
 end module wx_frame
 )";
-    std::cerr << "  Generated wx_frame.f90\n";
+    std::println(stderr, "  Generated wx_frame.f90");
 }
 
 // -------------------------------------------------------------------------
@@ -1948,7 +1941,7 @@ contains
 
 end module wx_controls
 )";
-    std::cerr << "  Generated wx_controls.f90\n";
+    std::println(stderr, "  Generated wx_controls.f90");
 }
 
 // -------------------------------------------------------------------------
@@ -2238,7 +2231,7 @@ contains
 
 end module wx_menus
 )";
-    std::cerr << "  Generated wx_menus.f90\n";
+    std::println(stderr, "  Generated wx_menus.f90");
 }
 
 // -------------------------------------------------------------------------
@@ -2368,7 +2361,7 @@ contains
 
 end module wx_sizers
 )";
-    std::cerr << "  Generated wx_sizers.f90\n";
+    std::println(stderr, "  Generated wx_sizers.f90");
 }
 
 // -------------------------------------------------------------------------
@@ -2582,7 +2575,7 @@ contains
 
 end module wx_events
 )";
-    std::cerr << "  Generated wx_events.f90\n";
+    std::println(stderr, "  Generated wx_events.f90");
 }
 
 // -------------------------------------------------------------------------
@@ -2636,5 +2629,5 @@ contains
 
 end module wx_dialogs
 )";
-    std::cerr << "  Generated wx_dialogs.f90\n";
+    std::println(stderr, "  Generated wx_dialogs.f90");
 }

@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
-#include <iostream>
+#include <print>
 #include <set>
 #include <tuple>
 #include <vector>
@@ -545,7 +545,7 @@ void RustEmitter::Generate(const ParsedFFI& ffi, const fs::path& outDir)
     GenerateClassFiles(ffi, srcDir);
     GenerateLib(ffi, srcDir);
 
-    std::cerr << "Rust: generated crate in " << outDir << "\n";
+    std::println(stderr, "Rust: generated crate in {}", outDir.string());
 }
 
 VerifyResult RustEmitter::Verify(const ParsedFFI& /* ffi */, const fs::path& /* dir */)
@@ -566,7 +566,7 @@ void RustEmitter::GenerateCargoToml(const fs::path& outDir)
     ConditionalFileWriter out(path);
     if (!out.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -582,7 +582,7 @@ void RustEmitter::GenerateCargoToml(const fs::path& outDir)
     out << "name = \"kwxffi_sys\"\n";
     out << "path = \"src/lib.rs\"\n";
 
-    std::cerr << "  Cargo.toml\n";
+    std::println(stderr, "  Cargo.toml");
 }
 
 // -------------------------------------------------------------------------
@@ -595,7 +595,7 @@ void RustEmitter::GenerateSys(const ParsedFFI& ffi, const fs::path& srcDir)
     ConditionalFileWriter out(path);
     if (!out.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -692,13 +692,13 @@ void RustEmitter::GenerateSys(const ParsedFFI& ffi, const fs::path& srcDir)
 
     out << "}\n";
 
-    std::cerr << "  sys.rs:              " << ffi.events.size() << " events, " << ffi.keys.size()
-              << " keys, " << ffi.constants.size() << " constants, " << methodCount << " methods";
+    std::print(stderr, "  sys.rs:              {} events, {} keys, {} constants, {} methods",
+               ffi.events.size(), ffi.keys.size(), ffi.constants.size(), methodCount);
     if (skippedCount > 0)
     {
-        std::cerr << " (" << skippedCount << " skipped)";
+        std::print(stderr, " ({} skipped)", skippedCount);
     }
-    std::cerr << "\n";
+    std::println(stderr, "");
 }
 
 // -------------------------------------------------------------------------
@@ -711,7 +711,7 @@ void RustEmitter::GenerateTraits(const ParsedFFI& ffi, const fs::path& srcDir)
     ConditionalFileWriter out(path);
     if (!out.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -784,7 +784,7 @@ void RustEmitter::GenerateTraits(const ParsedFFI& ffi, const fs::path& srcDir)
         ++traitCount;
     }
 
-    std::cerr << "  traits.rs:           " << traitCount << " traits\n";
+    std::println(stderr, "  traits.rs:           {} traits", traitCount);
 }
 
 // -------------------------------------------------------------------------
@@ -797,7 +797,7 @@ void RustEmitter::GenerateEvents(const ParsedFFI& ffi, const fs::path& srcDir)
     ConditionalFileWriter out(path);
     if (!out.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -821,7 +821,7 @@ void RustEmitter::GenerateEvents(const ParsedFFI& ffi, const fs::path& srcDir)
         out << "}\n\n";
     }
 
-    std::cerr << "  events.rs:           " << ffi.events.size() << " events\n";
+    std::println(stderr, "  events.rs:           {} events", ffi.events.size());
 }
 
 // -------------------------------------------------------------------------
@@ -834,7 +834,7 @@ void RustEmitter::GenerateKeys(const ParsedFFI& ffi, const fs::path& srcDir)
     ConditionalFileWriter out(path);
     if (!out.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -852,7 +852,7 @@ void RustEmitter::GenerateKeys(const ParsedFFI& ffi, const fs::path& srcDir)
         out << "}\n\n";
     }
 
-    std::cerr << "  keys.rs:             " << ffi.keys.size() << " keys\n";
+    std::println(stderr, "  keys.rs:             {} keys", ffi.keys.size());
 }
 
 // -------------------------------------------------------------------------
@@ -865,7 +865,7 @@ void RustEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& srcDir
     ConditionalFileWriter out(path);
     if (!out.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -888,7 +888,7 @@ void RustEmitter::GenerateConstants(const ParsedFFI& ffi, const fs::path& srcDir
         out << "}\n\n";
     }
 
-    std::cerr << "  constants.rs:        " << ffi.constants.size() << " constants\n";
+    std::println(stderr, "  constants.rs:        {} constants", ffi.constants.size());
 }
 
 // -------------------------------------------------------------------------
@@ -906,7 +906,7 @@ void RustEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::path& sr
     ConditionalFileWriter out(path);
     if (!out.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -981,7 +981,7 @@ void RustEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::path& sr
         ++count;
     }
 
-    std::cerr << "  freefuncs.rs:        " << count << " free functions\n";
+    std::println(stderr, "  freefuncs.rs:        {} free functions", count);
 }
 
 // -------------------------------------------------------------------------
@@ -1004,7 +1004,7 @@ void RustEmitter::GenerateClassFiles(const ParsedFFI& ffi, const fs::path& srcDi
         ConditionalFileWriter out(path);
         if (!out.is_open())
         {
-            std::cerr << "Error: cannot create " << path << "\n";
+            std::println(stderr, "Error: cannot create {}", path.string());
             continue;
         }
 
@@ -1012,7 +1012,7 @@ void RustEmitter::GenerateClassFiles(const ParsedFFI& ffi, const fs::path& srcDi
         ++fileCount;
     }
 
-    std::cerr << "  class files:         " << fileCount << " files\n";
+    std::println(stderr, "  class files:         {} files", fileCount);
 }
 
 void RustEmitter::EmitClassFile(std::ostream& out, const ClassInfo& cls, const ParsedFFI& ffi)
@@ -1289,7 +1289,7 @@ void RustEmitter::GenerateLib(const ParsedFFI& ffi, const fs::path& srcDir)
     ConditionalFileWriter out(path);
     if (!out.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -1332,7 +1332,7 @@ void RustEmitter::GenerateLib(const ParsedFFI& ffi, const fs::path& srcDir)
         out << "pub mod " << modName << ";\n";
     }
 
-    std::cerr << "  lib.rs:              " << modNames.size() << " class modules\n";
+    std::println(stderr, "  lib.rs:              {} class modules", modNames.size());
 }
 
 // NOLINTEND(readability-magic-string)

@@ -13,9 +13,7 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
-#include <format>
-#include <iostream>
-#include <locale>
+#include <print>
 #include <sstream>
 #include <tuple>
 #include <vector>
@@ -139,8 +137,7 @@ static size_t RemoveStaleGoClassFiles(const fs::path& out_dir,
         std::ignore = fs::remove(entry.path(), errc);
         if (errc)
         {
-            std::cerr << "Warning: failed to remove stale generated file " << entry.path() << ": "
-                      << errc.message() << "\n";
+            std::println(stderr, "Warning: failed to remove stale generated file {}: {}", entry.path().string(), errc.message());
         }
         else
         {
@@ -322,8 +319,7 @@ static std::vector<GoParam> ConvertParam(const Param& param)
         }
         else
         {
-            std::cerr << "Warning: TArrayString macro_arg '" << param.macro_arg
-                      << "' has fewer than 2 components\n";
+            std::println(stderr, "Warning: TArrayString macro_arg '{}' has fewer than 2 components", param.macro_arg);
         }
         return result;
     }
@@ -342,8 +338,7 @@ static std::vector<GoParam> ConvertParam(const Param& param)
         }
         else
         {
-            std::cerr << "Warning: TArrayInt macro_arg '" << param.macro_arg
-                      << "' has fewer than 2 components\n";
+            std::println(stderr, "Warning: TArrayInt macro_arg '{}' has fewer than 2 components", param.macro_arg);
         }
         return result;
     }
@@ -362,8 +357,7 @@ static std::vector<GoParam> ConvertParam(const Param& param)
         }
         else
         {
-            std::cerr << "Warning: TByteString macro_arg '" << param.macro_arg
-                      << "' has fewer than 2 components\n";
+            std::println(stderr, "Warning: TByteString macro_arg '{}' has fewer than 2 components", param.macro_arg);
         }
         return result;
     }
@@ -1233,9 +1227,7 @@ void GoEmitter::Generate(const ParsedFFI& parsed_ffi, const fs::path& out_dir)
     GenerateFreeFunctions(parsed_ffi, out_dir);
     const size_t class_file_count = GenerateClassFiles(parsed_ffi, out_dir);
 
-    static const std::locale user_locale("");
-    std::cerr << std::format(user_locale, "Go: checked {:L} files in {}\n",
-                             kFixedFileCount + class_file_count, out_dir.string());
+    std::println(stderr, "Go: checked {:L} files in {}", kFixedFileCount + class_file_count, out_dir.string());
 }
 
 VerifyResult GoEmitter::Verify(const ParsedFFI& /* parsed_ffi */, const fs::path& /* directory */)
@@ -1256,7 +1248,7 @@ void GoEmitter::GenerateHelpers(const fs::path& out_dir)
     ConditionalFileWriter writer(path);
     if (!writer.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -1319,12 +1311,12 @@ void GoEmitter::GenerateHelpers(const fs::path& out_dir)
     writer << "}\n";
 
     std::ignore = writer.Flush();
-    std::cerr << "  helpers_gen.go:   BaseObject + BaseWindow + WxString types";
+    std::print(stderr, "  helpers_gen.go:   BaseObject + BaseWindow + WxString types");
     if (!writer.WasWritten())
     {
-        std::cerr << " (unchanged)";
+        std::print(stderr, " (unchanged)");
     }
-    std::cerr << "\n";
+    std::println(stderr, "");
 }
 
 // -------------------------------------------------------------------------
@@ -1342,7 +1334,7 @@ void GoEmitter::GenerateFreeFunctions(const ParsedFFI& parsed_ffi, const fs::pat
     ConditionalFileWriter writer(path);
     if (!writer.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -1376,9 +1368,8 @@ void GoEmitter::GenerateFreeFunctions(const ParsedFFI& parsed_ffi, const fs::pat
     }
 
     std::ignore = writer.Flush();
-    static const std::locale user_locale("");
-    std::cerr << std::format(user_locale, "  functions_gen.go: {:L} free functions{}\n", count,
-                             writer.WasWritten() ? "" : " (unchanged)");
+    std::println(stderr, "  functions_gen.go: {:L} free functions{}", count,
+                 writer.WasWritten() ? "" : " (unchanged)");
 }
 
 // -------------------------------------------------------------------------
@@ -1391,7 +1382,7 @@ void GoEmitter::GenerateConstants(const ParsedFFI& parsed_ffi, const fs::path& o
     ConditionalFileWriter writer(path);
     if (!writer.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -1414,10 +1405,8 @@ void GoEmitter::GenerateConstants(const ParsedFFI& parsed_ffi, const fs::path& o
     writer << ")\n";
 
     std::ignore = writer.Flush();
-    static const std::locale user_locale("");
-    std::cerr << std::format(user_locale, "  constants_gen.go: {:L} constants{}\n",
-                             parsed_ffi.constants.size(),
-                             writer.WasWritten() ? "" : " (unchanged)");
+    std::println(stderr, "  constants_gen.go: {:L} constants{}", parsed_ffi.constants.size(),
+                 writer.WasWritten() ? "" : " (unchanged)");
 }
 
 // -------------------------------------------------------------------------
@@ -1430,7 +1419,7 @@ void GoEmitter::GenerateEvents(const ParsedFFI& parsed_ffi, const fs::path& out_
     ConditionalFileWriter writer(path);
     if (!writer.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -1453,9 +1442,8 @@ void GoEmitter::GenerateEvents(const ParsedFFI& parsed_ffi, const fs::path& out_
     writer << ")\n";
 
     std::ignore = writer.Flush();
-    static const std::locale user_locale("");
-    std::cerr << std::format(user_locale, "  events_gen.go:    {:L} events{}\n",
-                             parsed_ffi.events.size(), writer.WasWritten() ? "" : " (unchanged)");
+    std::println(stderr, "  events_gen.go:    {:L} events{}", parsed_ffi.events.size(),
+                 writer.WasWritten() ? "" : " (unchanged)");
 }
 
 // -------------------------------------------------------------------------
@@ -1468,7 +1456,7 @@ void GoEmitter::GenerateKeys(const ParsedFFI& parsed_ffi, const fs::path& out_di
     ConditionalFileWriter writer(path);
     if (!writer.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -1491,9 +1479,8 @@ void GoEmitter::GenerateKeys(const ParsedFFI& parsed_ffi, const fs::path& out_di
     writer << ")\n";
 
     std::ignore = writer.Flush();
-    static const std::locale user_locale("");
-    std::cerr << std::format(user_locale, "  keys_gen.go:      {:L} keys{}\n",
-                             parsed_ffi.keys.size(), writer.WasWritten() ? "" : " (unchanged)");
+    std::println(stderr, "  keys_gen.go:      {:L} keys{}", parsed_ffi.keys.size(),
+                 writer.WasWritten() ? "" : " (unchanged)");
 }
 
 // -------------------------------------------------------------------------
@@ -1552,7 +1539,7 @@ size_t GoEmitter::GenerateClassFiles(const ParsedFFI& parsed_ffi, const fs::path
         ConditionalFileWriter writer(path);
         if (!writer.is_open())
         {
-            std::cerr << "Error: cannot create " << path << "\n";
+            std::println(stderr, "Error: cannot create {}", path.string());
             continue;
         }
 
@@ -1578,20 +1565,19 @@ size_t GoEmitter::GenerateClassFiles(const ParsedFFI& parsed_ffi, const fs::path
 
     const size_t removed_stale = RemoveStaleGoClassFiles(out_dir, expected_class_files);
 
-    static const std::locale user_locale("");
-    std::cerr << std::format(user_locale, "  class files:      {:L} files, {:L} methods",
-                             file_count, method_count);
+    std::print(stderr, "  class files:      {:L} files, {:L} methods",
+               file_count, method_count);
     if (skipped_methods > 0)
     {
-        std::cerr << std::format(user_locale, " ({:L} skipped)", skipped_methods);
+        std::print(stderr, " ({:L} skipped)", skipped_methods);
     }
-    std::cerr << std::format(user_locale, " [{:L} written, {:L} unchanged", written_count,
-                             file_count - written_count);
+    std::print(stderr, " [{:L} written, {:L} unchanged", written_count,
+               file_count - written_count);
     if (removed_stale > 0)
     {
-        std::cerr << std::format(user_locale, ", {:L} stale removed", removed_stale);
+        std::print(stderr, ", {:L} stale removed", removed_stale);
     }
-    std::cerr << "]\n";
+    std::println(stderr, "]");
 
     return file_count;
 }
@@ -1694,7 +1680,7 @@ void GoEmitter::GenerateGlueFile(const ParsedFFI& parsed_ffi, const fs::path& ou
     ConditionalFileWriter writer(path);
     if (!writer.is_open())
     {
-        std::cerr << "Error: cannot create " << path << "\n";
+        std::println(stderr, "Error: cannot create {}", path.string());
         return;
     }
 
@@ -1854,9 +1840,8 @@ void GoEmitter::GenerateGlueFile(const ParsedFFI& parsed_ffi, const fs::path& ou
     }
 
     std::ignore = writer.Flush();
-    static const std::locale user_locale("");
-    std::cerr << std::format(user_locale, "  cgo_glue_gen.go:  {:L} glue functions{}\n", glue_count,
-                             writer.WasWritten() ? "" : " (unchanged)");
+    std::println(stderr, "  cgo_glue_gen.go:  {:L} glue functions{}", glue_count,
+                 writer.WasWritten() ? "" : " (unchanged)");
 }
 
 // NOLINTEND(readability-magic-string)
