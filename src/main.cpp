@@ -44,6 +44,7 @@
 #include "lang/lang_luajit.h"
 #include "lang/lang_perl.h"
 #include "lang/lang_rust.h"
+#include "lang/lang_typescript.h"
 #include "model.h"
 #include "verify.h"
 
@@ -85,7 +86,7 @@ static void PrintUsage(const char* prog_name)
     std::println(stderr, "  {} parse    --headers <dir> --defs <file> [--out <file>]", prog_name);
     std::println(stderr, "  {} generate --headers <dir> --defs <file> --lang <lang> --out <dir> [--exports]", prog_name);
     std::println(stderr, "  {} verify   --headers <dir> --defs <file> --lang <lang> --dir <dir>", prog_name);
-    std::println(stderr, "  Available langs: fortran go julia lua perl rust");
+    std::println(stderr, "  Available langs: fortran go julia lua perl rust typescript");
     std::println(stderr, "  {} exports  --headers <dir> --defs <file> --out <dir>", prog_name);
     std::println(stderr, "  {} diff     --headers <dir> --manifest <file>", prog_name);
     std::println(stderr, "  {} langs", prog_name);
@@ -200,6 +201,7 @@ static std::vector<std::unique_ptr<LanguageEmitter>> CreateEmitters()
     emitters.push_back(std::make_unique<LuaJITEmitter>());
     emitters.push_back(std::make_unique<PerlEmitter>());
     emitters.push_back(std::make_unique<RustEmitter>());
+    emitters.push_back(std::make_unique<TypeScriptEmitter>());
     return emitters;
 }
 
