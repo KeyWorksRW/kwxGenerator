@@ -49,11 +49,18 @@ jobs:
         sudo ./llvm.sh 21 all
         # Create unversioned symlinks so CMake uses the same compiler name
         # on both GitHub-hosted (clang-21) and self-hosted (clang v22)
-        sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-21 100
-        sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-21 100
+        # Use ln -sf (not update-alternatives) because the ubuntu-latest runner
+        # ships clang-18 pre-installed and /usr/bin/clang++ may be a regular
+        # file, not managed by alternatives — --install doesn't force the switch.
+        sudo ln -sf /usr/bin/clang-21 /usr/bin/clang
+        sudo ln -sf /usr/bin/clang++-21 /usr/bin/clang++
         # Use libc++ (installed above via 'all') so std::expected is always
         # available regardless of the system libstdc++ version
         echo "STDLIB_FLAG=-stdlib=libc++" >> $GITHUB_ENV
+        # Also set CC/CXX env vars as a belt-and-suspenders measure so CMake
+        # can fall back to versioned names even if symlinks are broken.
+        echo "CC=clang-21" >> $GITHUB_ENV
+        echo "CXX=clang++-21" >> $GITHUB_ENV
 
     - name: Verify clang
       run: clang++ --version
