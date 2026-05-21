@@ -877,7 +877,8 @@ void PerlEmitter::GenerateRawClassFiles(const ParsedFFI& ffi, const fs::path& ra
         ++classCount;
     }
 
-    std::println(stderr, "  raw/ class modules:         {} classes, {} functions", classCount, totalMethods);
+    std::println(stderr, "  raw/ class modules:         {} classes, {} functions", classCount,
+                 totalMethods);
 }
 
 // =========================================================================
@@ -982,7 +983,8 @@ void PerlEmitter::GenerateRawConstants(const ParsedFFI& ffi, const fs::path& raw
 
     out << "1;\n";
 
-    std::println(stderr, "  raw/Constants.pm:           {} events, {} keys, {} constants", sortedEvents.size(), sortedKeys.size(), sortedConstants.size());
+    std::println(stderr, "  raw/Constants.pm:           {} events, {} keys, {} constants",
+                 sortedEvents.size(), sortedKeys.size(), sortedConstants.size());
 }
 
 // =========================================================================
@@ -1130,7 +1132,8 @@ void PerlEmitter::GenerateRawInit(const ParsedFFI& ffi, const fs::path& rawDir)
     out << "}\n\n";
     out << "1;\n";
 
-    std::println(stderr, "  raw/Init.pm:                master init ({} modules)", classNames.size());
+    std::println(stderr, "  raw/Init.pm:                master init ({} modules)",
+                 classNames.size());
 }
 
 // =========================================================================
@@ -1170,7 +1173,8 @@ void PerlEmitter::GenerateOOClasses(const ParsedFFI& ffi, const fs::path& ooDir)
         }
     }
 
-    std::println(stderr, "  wx/ OO modules:             {} classes, {} methods", classCount, methodCount);
+    std::println(stderr, "  wx/ OO modules:             {} classes, {} methods", classCount,
+                 methodCount);
 }
 
 void PerlEmitter::EmitOOClassFile(std::ostream& out, const ClassInfo& class_info,

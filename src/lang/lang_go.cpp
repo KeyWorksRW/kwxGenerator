@@ -137,7 +137,8 @@ static size_t RemoveStaleGoClassFiles(const fs::path& out_dir,
         std::ignore = fs::remove(entry.path(), errc);
         if (errc)
         {
-            std::println(stderr, "Warning: failed to remove stale generated file {}: {}", entry.path().string(), errc.message());
+            std::println(stderr, "Warning: failed to remove stale generated file {}: {}",
+                         entry.path().string(), errc.message());
         }
         else
         {
@@ -319,7 +320,8 @@ static std::vector<GoParam> ConvertParam(const Param& param)
         }
         else
         {
-            std::println(stderr, "Warning: TArrayString macro_arg '{}' has fewer than 2 components", param.macro_arg);
+            std::println(stderr, "Warning: TArrayString macro_arg '{}' has fewer than 2 components",
+                         param.macro_arg);
         }
         return result;
     }
@@ -338,7 +340,8 @@ static std::vector<GoParam> ConvertParam(const Param& param)
         }
         else
         {
-            std::println(stderr, "Warning: TArrayInt macro_arg '{}' has fewer than 2 components", param.macro_arg);
+            std::println(stderr, "Warning: TArrayInt macro_arg '{}' has fewer than 2 components",
+                         param.macro_arg);
         }
         return result;
     }
@@ -357,7 +360,8 @@ static std::vector<GoParam> ConvertParam(const Param& param)
         }
         else
         {
-            std::println(stderr, "Warning: TByteString macro_arg '{}' has fewer than 2 components", param.macro_arg);
+            std::println(stderr, "Warning: TByteString macro_arg '{}' has fewer than 2 components",
+                         param.macro_arg);
         }
         return result;
     }
@@ -1227,7 +1231,8 @@ void GoEmitter::Generate(const ParsedFFI& parsed_ffi, const fs::path& out_dir)
     GenerateFreeFunctions(parsed_ffi, out_dir);
     const size_t class_file_count = GenerateClassFiles(parsed_ffi, out_dir);
 
-    std::println(stderr, "Go: checked {:L} files in {}", kFixedFileCount + class_file_count, out_dir.string());
+    std::println(stderr, "Go: checked {:L} files in {}", kFixedFileCount + class_file_count,
+                 out_dir.string());
 }
 
 VerifyResult GoEmitter::Verify(const ParsedFFI& /* parsed_ffi */, const fs::path& /* directory */)
@@ -1565,14 +1570,12 @@ size_t GoEmitter::GenerateClassFiles(const ParsedFFI& parsed_ffi, const fs::path
 
     const size_t removed_stale = RemoveStaleGoClassFiles(out_dir, expected_class_files);
 
-    std::print(stderr, "  class files:      {:L} files, {:L} methods",
-               file_count, method_count);
+    std::print(stderr, "  class files:      {:L} files, {:L} methods", file_count, method_count);
     if (skipped_methods > 0)
     {
         std::print(stderr, " ({:L} skipped)", skipped_methods);
     }
-    std::print(stderr, " [{:L} written, {:L} unchanged", written_count,
-               file_count - written_count);
+    std::print(stderr, " [{:L} written, {:L} unchanged", written_count, file_count - written_count);
     if (removed_stale > 0)
     {
         std::print(stderr, ", {:L} stale removed", removed_stale);

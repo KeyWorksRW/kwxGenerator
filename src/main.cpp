@@ -84,16 +84,22 @@ static void PrintUsage(const char* prog_name)
 {
     std::println(stderr, "Usage:");
     std::println(stderr, "  {} parse    --headers <dir> --defs <file> [--out <file>]", prog_name);
-    std::println(stderr, "  {} generate --headers <dir> --defs <file> --lang <lang> --out <dir> [--exports]", prog_name);
-    std::println(stderr, "  {} verify   --headers <dir> --defs <file> --lang <lang> --dir <dir>", prog_name);
+    std::println(
+        stderr, "  {} generate --headers <dir> --defs <file> --lang <lang> --out <dir> [--exports]",
+        prog_name);
+    std::println(stderr, "  {} verify   --headers <dir> --defs <file> --lang <lang> --dir <dir>",
+                 prog_name);
     std::println(stderr, "  Available langs: fortran go julia lua perl rust typescript");
     std::println(stderr, "  {} exports  --headers <dir> --defs <file> --out <dir>", prog_name);
     std::println(stderr, "  {} diff     --headers <dir> --manifest <file>", prog_name);
     std::println(stderr, "  {} langs", prog_name);
     std::println(stderr, "");
     std::println(stderr, "Global options (for generate/verify):");
-    std::println(stderr, "  --libname <name>   Runtime shared-library name in generated bindings (default: kwxFFI)");
-    std::println(stderr, "  --exports          Also generate platform export files (.def/.map/.exp)");
+    std::println(
+        stderr,
+        "  --libname <name>   Runtime shared-library name in generated bindings (default: kwxFFI)");
+    std::println(stderr,
+                 "  --exports          Also generate platform export files (.def/.map/.exp)");
 }
 
 struct Args
@@ -126,7 +132,8 @@ static bool LoadConfigFile(Args& args)
         args, config_path.string(), buffer);
     if (errc)
     {
-        std::println(stderr, "Error reading {}: {}", config_path.string(), glz::format_error(errc, buffer));
+        std::println(stderr, "Error reading {}: {}", config_path.string(),
+                     glz::format_error(errc, buffer));
         return false;
     }
 
