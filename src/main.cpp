@@ -9,10 +9,10 @@
 //   MSVC uses _MSVC_LANG (more reliable than __cplusplus without /Zc:__cplusplus)
 //   GCC, Clang, and others use __cplusplus
 #if defined(_MSVC_LANG)
-    #if _MSVC_LANG < 202302L
+    #if _MSVC_LANG < 2021001L
         #error "C++23 or later is required to build this project. Please upgrade your compiler."
     #endif
-#elif __cplusplus < 202302L
+#elif (__cplusplus < 202101L)
     #error "C++23 or later is required to build this project. Please upgrade your compiler."
 #endif
 
