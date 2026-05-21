@@ -494,7 +494,8 @@ void LuaJITEmitter::GenerateConstants(const ParsedFFI& ffi_data, const fs::path&
 
     writer << "]]\n";
 
-    std::println(stderr, "  kwxffi_constants_gen.lua:    {:L} constants", ffi_data.constants.size());
+    std::println(stderr, "  kwxffi_constants_gen.lua:    {:L} constants",
+                 ffi_data.constants.size());
 }
 
 // -------------------------------------------------------------------------
@@ -543,8 +544,8 @@ void LuaJITEmitter::GenerateClasses(const ParsedFFI& ffi_data, const fs::path& o
         writer << "]]\n\n";
     }
 
-    std::print(stderr, "  kwxffi_classes_gen.lua:      {:L} classes, {:L} methods",
-               class_count, method_count);
+    std::print(stderr, "  kwxffi_classes_gen.lua:      {:L} classes, {:L} methods", class_count,
+               method_count);
     if (skipped_count > 0)
     {
         std::print(stderr, " ({} skipped)", skipped_count);
@@ -1125,7 +1126,8 @@ void LuaJITEmitter::GenerateIdiomaticClasses(const ParsedFFI& ffi_data, const fs
 
     master << "\nreturn M\n";
 
-    std::print(stderr, "  kwxffi_idiomatic_gen.lua:    {} classes, {} methods", class_count, method_count);
+    std::print(stderr, "  kwxffi_idiomatic_gen.lua:    {} classes, {} methods", class_count,
+               method_count);
     if (skipped_count > 0)
     {
         std::print(stderr, " ({} skipped)", skipped_count);
