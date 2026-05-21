@@ -1,3 +1,10 @@
+/////////////////////////////////////////////////////////////////////////////
+// Purpose:   Deno TypeScript FFI type mapping
+// Author:    Ralph Walden
+// Copyright: Copyright (c) 2026 KeyWorks Software (Ralph Walden)
+// License:   Apache License -- see ..\..\LICENSE
+/////////////////////////////////////////////////////////////////////////////
+
 #pragma once
 
 // Deno FFI type mapping for TypeScript code generation.
@@ -40,12 +47,12 @@ inline std::string TsEscapeName(const std::string& name)
         name == "while" || name == "yield" || name == "delete" || name == "export" ||
         name == "import" || name == "return" || name == "static" || name == "switch" ||
         name == "typeof" || name == "default" || name == "extends" || name == "finally" ||
-        name == "function" || name == "continue" || name == "debugger" ||
-        name == "instanceof" || name == "from" || name == "of" || name == "type" ||
-        name == "interface" || name == "implements" || name == "private" ||
-        name == "protected" || name == "public" || name == "abstract" || name == "declare" ||
-        name == "override" || name == "readonly" || name == "satisfies" || name == "as" ||
-        name == "namespace" || name == "async" || name == "await")
+        name == "function" || name == "continue" || name == "debugger" || name == "instanceof" ||
+        name == "from" || name == "of" || name == "type" || name == "interface" ||
+        name == "implements" || name == "private" || name == "protected" || name == "public" ||
+        name == "abstract" || name == "declare" || name == "override" || name == "readonly" ||
+        name == "satisfies" || name == "as" || name == "namespace" || name == "async" ||
+        name == "await")
     {
         return name + "_";
     }
@@ -61,7 +68,7 @@ inline std::vector<std::string> TsSplitMacroArg(const std::string& arg)
     while (std::getline(stream, part, ','))
     {
         const std::string::size_type start_pos = part.find_first_not_of(" \t");
-        const std::string::size_type end_pos   = part.find_last_not_of(" \t");
+        const std::string::size_type end_pos = part.find_last_not_of(" \t");
         if (start_pos != std::string::npos)
         {
             parts.push_back(part.substr(start_pos, end_pos - start_pos + 1ULL));
@@ -153,7 +160,7 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
     if (param_in.macro_name == "TPoint" || param_in.macro_name == "TSize" ||
         param_in.macro_name == "TVector")
     {
-        for (const auto& name_str : TsSplitMacroArg(param_in.macro_arg))
+        for (const auto& name_str: TsSplitMacroArg(param_in.macro_arg))
         {
             result.push_back({ "\"i32\"", TsEscapeName(name_str) });
         }
@@ -162,7 +169,7 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
 
     if (param_in.macro_name == "TRect")
     {
-        for (const auto& name_str : TsSplitMacroArg(param_in.macro_arg))
+        for (const auto& name_str: TsSplitMacroArg(param_in.macro_arg))
         {
             result.push_back({ "\"i32\"", TsEscapeName(name_str) });
         }
@@ -170,9 +177,9 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
     }
 
     if (param_in.macro_name == "TPointLong" || param_in.macro_name == "TSizeLong" ||
-        param_in.macro_name == "TRectLong"  || param_in.macro_name == "TVectorLong")
+        param_in.macro_name == "TRectLong" || param_in.macro_name == "TVectorLong")
     {
-        for (const auto& name_str : TsSplitMacroArg(param_in.macro_arg))
+        for (const auto& name_str: TsSplitMacroArg(param_in.macro_arg))
         {
             result.push_back({ "\"i32\"", TsEscapeName(name_str) });
         }
@@ -181,9 +188,9 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
 
     // Output geometry: int* output pointers → "pointer"
     if (param_in.macro_name == "TPointOut" || param_in.macro_name == "TSizeOut" ||
-        param_in.macro_name == "TRectOut"  || param_in.macro_name == "TVectorOut")
+        param_in.macro_name == "TRectOut" || param_in.macro_name == "TVectorOut")
     {
-        for (const auto& name_str : TsSplitMacroArg(param_in.macro_arg))
+        for (const auto& name_str: TsSplitMacroArg(param_in.macro_arg))
         {
             result.push_back({ "\"pointer\"", TsEscapeName(name_str) });
         }
@@ -191,9 +198,9 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
     }
 
     if (param_in.macro_name == "TPointOutVoid" || param_in.macro_name == "TSizeOutVoid" ||
-        param_in.macro_name == "TRectOutVoid"  || param_in.macro_name == "TVectorOutVoid")
+        param_in.macro_name == "TRectOutVoid" || param_in.macro_name == "TVectorOutVoid")
     {
-        for (const auto& name_str : TsSplitMacroArg(param_in.macro_arg))
+        for (const auto& name_str: TsSplitMacroArg(param_in.macro_arg))
         {
             result.push_back({ "\"pointer\"", TsEscapeName(name_str) });
         }
@@ -202,7 +209,7 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
 
     if (param_in.macro_name == "TSizeOutDouble")
     {
-        for (const auto& name_str : TsSplitMacroArg(param_in.macro_arg))
+        for (const auto& name_str: TsSplitMacroArg(param_in.macro_arg))
         {
             result.push_back({ "\"pointer\"", TsEscapeName(name_str) });
         }
@@ -211,7 +218,7 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
 
     if (param_in.macro_name == "TColorRGB")
     {
-        for (const auto& name_str : TsSplitMacroArg(param_in.macro_arg))
+        for (const auto& name_str: TsSplitMacroArg(param_in.macro_arg))
         {
             result.push_back({ "\"u8\"", TsEscapeName(name_str) });
         }
@@ -220,12 +227,12 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
 
     // Array types: count (i32) + pointer to data
     if (param_in.macro_name == "TArrayString" || param_in.macro_name == "TArrayInt" ||
-        param_in.macro_name == "TByteString"  || param_in.macro_name == "TByteStringLazy")
+        param_in.macro_name == "TByteString" || param_in.macro_name == "TByteStringLazy")
     {
         const std::vector<std::string> names = TsSplitMacroArg(param_in.macro_arg);
         if (names.size() >= 2ULL)
         {
-            result.push_back({ "\"i32\"",     TsEscapeName(names[0]) });
+            result.push_back({ "\"i32\"", TsEscapeName(names[0]) });
             result.push_back({ "\"pointer\"", TsEscapeName(names[1]) });
         }
         return result;
@@ -242,8 +249,7 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
     if (param_in.macro_name == "TClass" || param_in.macro_name == "TSelf" ||
         param_in.macro_name == "TClassRef")
     {
-        const std::string pname =
-            param_in.param_name.empty() ? "self_" : param_in.param_name;
+        const std::string pname = param_in.param_name.empty() ? "self_" : param_in.param_name;
         result.push_back({ "\"pointer\"", TsEscapeName(pname) });
         return result;
     }
@@ -264,8 +270,7 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
 
     if (param_in.macro_name == "TClosureFun" || param_in.raw_type == "TClosureFun")
     {
-        const std::string pname =
-            param_in.param_name.empty() ? "func_" : param_in.param_name;
+        const std::string pname = param_in.param_name.empty() ? "func_" : param_in.param_name;
         result.push_back({ "\"function\"", TsEscapeName(pname) });
         return result;
     }
@@ -277,12 +282,9 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
         return result;
     }
 
-    if (param_in.raw_type == "TArrayIntOutVoid"    ||
-        param_in.raw_type == "TArrayIntPtrOutVoid" ||
-        param_in.raw_type == "TArrayStringOutVoid" ||
-        param_in.raw_type == "TByteStringOut"      ||
-        param_in.raw_type == "TByteStringLazyOut"  ||
-        param_in.raw_type == "TArrayObjectOutVoid")
+    if (param_in.raw_type == "TArrayIntOutVoid" || param_in.raw_type == "TArrayIntPtrOutVoid" ||
+        param_in.raw_type == "TArrayStringOutVoid" || param_in.raw_type == "TByteStringOut" ||
+        param_in.raw_type == "TByteStringLazyOut" || param_in.raw_type == "TArrayObjectOutVoid")
     {
         const std::string pname = param_in.param_name.empty() ? "arrp" : param_in.param_name;
         result.push_back({ "\"pointer\"", TsEscapeName(pname) });
@@ -291,16 +293,14 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
 
     if (param_in.raw_type == "TChar")
     {
-        const std::string pname =
-            param_in.param_name.empty() ? "char_" : param_in.param_name;
+        const std::string pname = param_in.param_name.empty() ? "char_" : param_in.param_name;
         result.push_back({ "\"u8\"", TsEscapeName(pname) });
         return result;
     }
 
     if (param_in.raw_type == "TUInt8")
     {
-        const std::string pname =
-            param_in.param_name.empty() ? "byte_" : param_in.param_name;
+        const std::string pname = param_in.param_name.empty() ? "byte_" : param_in.param_name;
         result.push_back({ "\"u8\"", TsEscapeName(pname) });
         return result;
     }
@@ -320,8 +320,8 @@ inline std::vector<TsFFIParam> ExpandParamToTsFFI(const Param& param_in)
     }
 
     // Plain C types
-    const std::string pname = TsEscapeName(
-        param_in.param_name.empty() ? "arg_" : param_in.param_name);
+    const std::string pname =
+        TsEscapeName(param_in.param_name.empty() ? "arg_" : param_in.param_name);
     const std::string& rtype = param_in.raw_type;
 
     if (rtype.empty() || rtype == "int")
