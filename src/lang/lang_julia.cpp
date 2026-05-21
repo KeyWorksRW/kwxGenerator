@@ -271,7 +271,8 @@ static std::vector<JuliaIdiomParam> ConvertToIdiomParams(const Param& param, boo
         const std::vector<std::string> names = JuliaSplitMacroArg(param.macro_arg);
         if (names.size() < 2)
         {
-            std::println(stderr, "Warning: {}({}) expected 2 names, got {}", param.macro_name, param.macro_arg, names.size());
+            std::println(stderr, "Warning: {}({}) expected 2 names, got {}", param.macro_name,
+                         param.macro_arg, names.size());
             return result;
         }
         result.push_back({ names[0] + "::Integer", "Cint(" + names[0] + ")", "", "" });
