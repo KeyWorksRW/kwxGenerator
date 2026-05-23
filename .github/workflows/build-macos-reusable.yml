@@ -28,11 +28,21 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install LLVM Clang
+    - name: Install and configure LLVM Clang (GitHub-hosted)
       if: ${{ !startsWith(inputs.runner-type, 'self-hosted') }}
       run: |
         brew install llvm
-        echo "$(brew --prefix llvm)/bin" >> $GITHUB_PATH
+        LLVM_BIN="$(brew --prefix llvm)/bin"
+        echo "LLVM_BIN=$LLVM_BIN" >> $GITHUB_ENV
+        # Use libc++ so <print> (C++23) and <expected> are available
+        echo "STDLIB_FLAG=-stdlib=libc++" >> $GITHUB_ENV
+
+    - name: Configure LLVM Clang (self-hosted macOS)
+      if: ${{ startsWith(inputs.runner-type, 'self-hosted') }}
+      run: |
+        # Self-hosted macOS runner should already have a C++23-capable clang.
+        # Ensure libc++ is used for <print> support.
+        echo "STDLIB_FLAG=-stdlib=libc++" >> $GITHUB_ENV
 
     - name: Setup CMake 3.30+ and Ninja
       uses: lukka/get-cmake@latest
@@ -57,12 +67,19 @@ jobs:
     - name: Configure CMake (GitHub runner - universal binary)
       if: ${{ !startsWith(inputs.runner-type, 'self-hosted') }}
       run: |
-        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{inputs.build-type}} -GNinja -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{inputs.build-type}} -GNinja \
+          -DCMAKE_C_COMPILER=${LLVM_BIN}/clang \
+          -DCMAKE_CXX_COMPILER=${LLVM_BIN}/clang++ \
+          -DCMAKE_CXX_FLAGS="${STDLIB_FLAG}" \
+          -DCMAKE_EXE_LINKER_FLAGS="${STDLIB_FLAG}" \
+          -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
 
     - name: Configure CMake (self-hosted - native architecture)
       if: ${{ startsWith(inputs.runner-type, 'self-hosted') }}
       run: |
-        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{inputs.build-type}} -GNinja
+        cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{inputs.build-type}} -GNinja \
+          -DCMAKE_CXX_FLAGS="${STDLIB_FLAG}" \
+          -DCMAKE_EXE_LINKER_FLAGS="${STDLIB_FLAG}"
 
     - name: Build kwxgen
       run: |
