@@ -77,12 +77,12 @@ namespace fs = std::filesystem;
 
 // Find the nearest wrapped ancestor of class_name by walking the parent_map chain.
 // Returns empty string if no wrapped parent exists (class becomes a root class).
-[[nodiscard]] static std::string FindTsWrappedParent(
-    const std::string& class_name,
-    const ParsedFFI& ffi,
-    const std::unordered_set<std::string>& wrapped_classes)
+[[nodiscard]] static std::string
+    FindTsWrappedParent(const std::string& class_name, const ParsedFFI& ffi,
+                        const std::unordered_set<std::string>& wrapped_classes)
 {
-    std::unordered_map<std::string, std::string>::const_iterator iter = ffi.parent_map.find(class_name);
+    std::unordered_map<std::string, std::string>::const_iterator iter =
+        ffi.parent_map.find(class_name);
     std::set<std::string> visited;
     while (iter != ffi.parent_map.end())
     {
@@ -545,7 +545,7 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
 // -------------------------------------------------------------------------
 
 void TypeScriptEmitter::EmitClassFile(std::ostream& output, const ClassInfo& cls,
-                                       const ParsedFFI& ffi)
+                                      const ParsedFFI& ffi)
 {
     // Build the set of classes that actually have generated wrapper methods.
     std::unordered_set<std::string> wrapped_classes;
@@ -564,8 +564,8 @@ void TypeScriptEmitter::EmitClassFile(std::ostream& output, const ClassInfo& cls
     output << "import { lib } from \"./kwx_ffi_gen.ts\";\n";
     if (!parent_name.empty())
     {
-        output << "import { " << parent_name << " } from \""
-               << TsClassImportPath(parent_name) << "\";\n";
+        output << "import { " << parent_name << " } from \"" << TsClassImportPath(parent_name)
+               << "\";\n";
     }
     output << "\n";
     output << "export class " << cls.name;
