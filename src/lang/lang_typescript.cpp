@@ -25,9 +25,8 @@
 #include <filesystem>
 #include <print>
 #include <set>
+#include <unordered_set>
 #include <vector>
-
-// NOLINTBEGIN(readability-magic-string)
 
 namespace fs = std::filesystem;
 
@@ -76,6 +75,32 @@ namespace fs = std::filesystem;
     return true;
 }
 
+// Find the nearest wrapped ancestor of class_name by walking the parent_map chain.
+// Returns empty string if no wrapped parent exists (class becomes a root class).
+[[nodiscard]] static std::string FindTsWrappedParent(
+    const std::string& class_name,
+    const ParsedFFI& ffi,
+    const std::unordered_set<std::string>& wrapped_classes)
+{
+    std::unordered_map<std::string, std::string>::const_iterator iter = ffi.parent_map.find(class_name);
+    std::set<std::string> visited;
+    while (iter != ffi.parent_map.end())
+    {
+        const std::string& parent = iter->second;
+        if (visited.contains(parent))
+        {
+            break;  // cycle guard
+        }
+        visited.insert(parent);
+        if (wrapped_classes.contains(parent))
+        {
+            return parent;
+        }
+        iter = ffi.parent_map.find(parent);
+    }
+    return {};
+}
+
 // Wraps a single kwx Param into information needed for the idiomatic TS method signature.
 // Each returned entry is one visible TypeScript parameter (or a hidden self receiver).
 struct WrapParam
@@ -83,17 +108,17 @@ struct WrapParam
     std::string name;      // TypeScript parameter name (empty when is_self is true)
     std::string ts_type;   // TypeScript type annotation (e.g., "number", "boolean")
     std::string ffi_expr;  // Expression to pass to the FFI call (e.g., "flag ? 1 : 0")
-    bool is_self = false;  // True → not visible in TS signature; ffi_expr is "this.#ptr"
+    bool is_self = false;  // True → not visible in TS signature; ffi_expr is "this._ptr"
 };
 
 [[nodiscard]] static std::vector<WrapParam> BuildWrapParams(const Param& param)
 {
     std::vector<WrapParam> result;
 
-    // TSelf → hidden receiver, pass this.#ptr to the C call
+    // TSelf → hidden receiver, pass this._ptr to the C call
     if (param.macro_name == "TSelf")
     {
-        result.push_back({ "", "", "this.#ptr", true });
+        result.push_back({ "", "", "this._ptr", true });
         return result;
     }
 
@@ -520,18 +545,46 @@ void TypeScriptEmitter::GenerateFreeFunctions(const ParsedFFI& ffi, const fs::pa
 // -------------------------------------------------------------------------
 
 void TypeScriptEmitter::EmitClassFile(std::ostream& output, const ClassInfo& cls,
-                                      const ParsedFFI& /* ffi */)
+                                       const ParsedFFI& ffi)
 {
+    // Build the set of classes that actually have generated wrapper methods.
+    std::unordered_set<std::string> wrapped_classes;
+    for (const auto& other: ffi.classes)
+    {
+        if (!other.methods.empty())
+        {
+            wrapped_classes.insert(other.name);
+        }
+    }
+
+    // Find the nearest wrapped ancestor for extends-based inheritance.
+    const std::string parent_name = FindTsWrappedParent(cls.name, ffi, wrapped_classes);
+
     WriteGeneratedHeader(output, "//");
-    output << "import { lib } from \"./kwx_ffi_gen.ts\";\n\n";
-    output << "export class " << cls.name << " {\n";
-    output << "  readonly #ptr: Deno.PointerValue;\n\n";
-    output << "  constructor(ptr: Deno.PointerValue) {\n";
-    output << "    this.#ptr = ptr;\n";
-    output << "  }\n\n";
+    output << "import { lib } from \"./kwx_ffi_gen.ts\";\n";
+    if (!parent_name.empty())
+    {
+        output << "import { " << parent_name << " } from \""
+               << TsClassImportPath(parent_name) << "\";\n";
+    }
+    output << "\n";
+    output << "export class " << cls.name;
+    if (!parent_name.empty())
+    {
+        output << " extends " << parent_name;
+    }
+    output << " {\n";
+    if (parent_name.empty())
+    {
+        // Root class (no wrapped parent) — own the pointer field.
+        output << "  protected readonly _ptr: Deno.PointerValue;\n\n";
+        output << "  constructor(ptr: Deno.PointerValue) {\n";
+        output << "    this._ptr = ptr;\n";
+        output << "  }\n\n";
+    }
     output << "  /** Returns the underlying native pointer. */\n";
     output << "  get ptr(): Deno.PointerValue {\n";
-    output << "    return this.#ptr;\n";
+    output << "    return this._ptr;\n";
     output << "  }\n\n";
 
     // Separate deduplication sets: static and instance methods do not share a namespace.
@@ -613,7 +666,7 @@ void TypeScriptEmitter::EmitClassFile(std::ostream& output, const ClassInfo& cls
         const std::string func_name = CFuncName(func);
 
         output << "  Delete(): void {\n";
-        output << "    lib.symbols." << func_name << "(this.#ptr);\n";
+        output << "    lib.symbols." << func_name << "(this._ptr);\n";
         output << "  }\n\n";
         output << "  [Symbol.dispose](): void {\n";
         output << "    this.Delete();\n";
@@ -657,7 +710,7 @@ void TypeScriptEmitter::EmitClassFile(std::ostream& output, const ClassInfo& cls
             if (pseudo_self && pidx == 0)
             {
                 // First param is TClass(ClassName) acting as self
-                wrap_params.push_back({ "", "", "this.#ptr", true });
+                wrap_params.push_back({ "", "", "this._ptr", true });
                 continue;
             }
             const std::vector<WrapParam> params = BuildWrapParams(param);
@@ -687,7 +740,7 @@ void TypeScriptEmitter::EmitClassFile(std::ostream& output, const ClassInfo& cls
         std::string call = "lib.symbols." + func_name + "(";
         bool call_first = true;
 
-        // TSelf and pseudo-self params are already mapped to this.#ptr in BuildWrapParams.
+        // TSelf and pseudo-self params are already mapped to this._ptr in BuildWrapParams.
         for (const auto& wpar: wrap_params)
         {
             if (!call_first)
@@ -778,5 +831,3 @@ void TypeScriptEmitter::GenerateIndex(const ParsedFFI& ffi, const fs::path& out_
 
     std::println(stderr, "  kwx_gen.ts:              {} class exports", class_names.size());
 }
-
-// NOLINTEND(readability-magic-string)
