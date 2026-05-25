@@ -23,7 +23,6 @@
 //     "headers_dir": "../kwxFFI/include",
 //     "defs_file": "../kwxFFI/kwx_defs.h",
 //     "out_path": "./generated",
-//     "lang": "rust",
 //     "verify_dir": "./reference",
 //     "manifest_file": "./manifest.json",
 //     "lib_name": "kwxFFI",
@@ -42,9 +41,9 @@
 #include "lang/lang_go.h"
 #include "lang/lang_julia.h"
 #include "lang/lang_luajit.h"
-#include "lang/lang_perl.h"
-#include "lang/lang_rust.h"
+// #include "lang/lang_perl.h"
 #include "lang/lang_typescript.h"
+#include "md_files_gen.h"
 #include "model.h"
 #include "verify.h"
 
@@ -68,6 +67,7 @@ static constexpr std::string_view CMD_VERIFY = "verify";
 static constexpr std::string_view CMD_EXPORTS = "exports";
 static constexpr std::string_view CMD_DIFF = "diff";
 static constexpr std::string_view CMD_LANGS = "langs";
+static constexpr std::string_view CMD_ALL_MD_FILES = "all_md_files";
 
 // Argument flags
 static constexpr std::string_view ARG_HEADERS = "--headers";
@@ -78,6 +78,7 @@ static constexpr std::string_view ARG_DIR = "--dir";
 static constexpr std::string_view ARG_MANIFEST = "--manifest";
 static constexpr std::string_view ARG_LIBNAME = "--libname";
 static constexpr std::string_view ARG_EXPORTS_FLAG = "--exports";
+static constexpr std::string_view ARG_ALL_MD_FILES = "--amdfiles";
 static constexpr std::string_view STDOUT_MARKER = "-";
 
 static void PrintUsage(const char* prog_name)
@@ -89,7 +90,7 @@ static void PrintUsage(const char* prog_name)
         prog_name);
     std::println(stderr, "  {} verify   --headers <dir> --defs <file> --lang <lang> --dir <dir>",
                  prog_name);
-    std::println(stderr, "  Available langs: fortran go julia lua perl rust typescript");
+    std::println(stderr, "  Available langs: fortran go julia lua typescript");
     std::println(stderr, "  {} exports  --headers <dir> --defs <file> --out <dir>", prog_name);
     std::println(stderr, "  {} diff     --headers <dir> --manifest <file>", prog_name);
     std::println(stderr, "  {} langs", prog_name);
@@ -186,6 +187,11 @@ static bool LoadConfigFile(Args& args)
         {
             args.exports = true;
         }
+        else if (argument == ARG_ALL_MD_FILES)
+        {
+            // Override command — generate all markdown docs instead of code
+            args.command = CMD_ALL_MD_FILES;
+        }
         else
         {
             std::println(stderr, "Unknown argument: {}", argument);
@@ -206,8 +212,7 @@ static std::vector<std::unique_ptr<LanguageEmitter>> CreateEmitters()
     emitters.push_back(std::make_unique<GoEmitter>());
     emitters.push_back(std::make_unique<JuliaEmitter>());
     emitters.push_back(std::make_unique<LuaJITEmitter>());
-    emitters.push_back(std::make_unique<PerlEmitter>());
-    emitters.push_back(std::make_unique<RustEmitter>());
+    // emitters.push_back(std::make_unique<PerlEmitter>());
     emitters.push_back(std::make_unique<TypeScriptEmitter>());
     return emitters;
 }
@@ -479,6 +484,28 @@ int main(int argc, char* argv[])
         std::ignore = fs::remove_all(temp_dir);
 
         return verify_result.success ? 0 : 1;
+    }
+
+    if (args.command == CMD_ALL_MD_FILES)
+    {
+        if (args.headers_dir.empty() || args.defs_file.empty())
+        {
+            std::println(stderr, "Error: '{}' requires --headers and --defs", CMD_ALL_MD_FILES);
+            return 1;
+        }
+        if (args.out_path.empty())
+        {
+            std::println(stderr, "Error: '{}' requires --out", CMD_ALL_MD_FILES);
+            return 1;
+        }
+
+        std::println(stderr, "Parsing...");
+        ParsedFFI parsed_ffi = RunParsers(args.headers_dir, args.defs_file);
+
+        std::println(stderr, "Generating agent markdown documentation...");
+        GenerateAllMarkdownFiles(parsed_ffi, args.out_path);
+
+        return 0;
     }
 
     if (args.command == CMD_EXPORTS)
