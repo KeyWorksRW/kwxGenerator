@@ -22,6 +22,34 @@ The sections below detail the exact steps for each language.
 
 ---
 
+### Fortran (kwxFortran)
+
+**Prerequisites:** CMake 3.30+ and a C++23 compiler
+
+**Step 1 — Build kwxgen and generate** (from CMakeLists.txt or a script):
+
+```sh
+cmake -S extern/kwxFFI/tools/kwxgen -B build/kwxgen -G Ninja
+cmake --build build/kwxgen
+
+build/kwxgen/kwxgen generate \
+    --headers extern/kwxFFI/include \
+    --defs    extern/kwxFFI/src/kwx_defs.cpp \
+    --lang    fortran \
+    --out     src/gen/
+```
+
+**Generated output** (`src/gen/`): one `wx_button.f90`-style `module` per class using
+`ISO_C_BINDING` `interface` blocks, plus `wx_events.f90`, `wx_keys.f90`,
+`wx_constants.f90`. Compile and `use` normally:
+
+```fortran
+use wx_button
+use wx_events
+```
+
+---
+
 ### Go (kwxGO)
 
 **Prerequisites:** CMake 3.30+, a C++23 compiler.
@@ -114,101 +142,46 @@ Regenerate any time kwxFFI is updated; commit the generated files alongside hand
 
 ---
 
-### Rust (kwxRust)
+### TypeScript (kwxTypeScript)
 
-**Prerequisites:** CMake 3.30+ and a C++23 compiler
+**Prerequisites:** CMake 3.30+ and a C++23 compiler; Deno 1.40+.
 
-**Step 1 — Invoke kwxgen from `build.rs`:**
-
-```rust
-fn main() {
-    // Build kwxgen if not already built
-    let kwxgen = std::process::Command::new("cmake")
-        .args(["--build", "build/kwxgen"])
-        .status().expect("cmake build failed");
-
-    // Generate Rust bindings
-    std::process::Command::new("build/kwxgen/kwxgen")
-        .args([
-            "generate",
-            "--headers", "extern/kwxFFI/include",
-            "--defs",    "extern/kwxFFI/src/kwx_defs.cpp",
-            "--lang",    "rust",
-            "--out",     "src/gen/",
-        ])
-        .status().expect("kwxgen failed");
-
-    println!("cargo:rerun-if-changed=extern/kwxFFI/include/kwx_classes.h");
-    println!("cargo:rerun-if-changed=extern/kwxFFI/include/kwx_events.h");
-}
-```
-
-**Generated output** (`src/gen/`): `sys.rs` with `extern "C"` declarations for all
-functions; one `button.rs`-style file per class with a safe wrapper struct, `impl` block,
-and `Drop` for classes that have a `Delete` method. Include from `lib.rs`:
-
-```rust
-mod gen;
-pub use gen::button::Button;
-```
-
----
-
-### Perl (kwxPerl)
-
-**Prerequisites:** CMake 3.30+ and a C++23 compiler; Perl 5.32+ with `FFI::Platypus` 2.00+.
-
-**Step 1 — Build kwxgen and generate** (from `Makefile.PL` or a setup script):
+**Step 1 — Build kwxgen:**
 
 ```sh
 cmake -S extern/kwxFFI/tools/kwxgen -B build/kwxgen -G Ninja
 cmake --build build/kwxgen
-
-build/kwxgen/kwxgen generate \
-    --headers extern/kwxFFI/include \
-    --defs    extern/kwxFFI/src/kwx_defs.cpp \
-    --lang    perl \
-    --out     lib/Wx/Gen/
 ```
 
-**Generated output** (`lib/Wx/Gen/`): one `.pm` file per class using
-`FFI::Platypus->attach(...)`. Each generated module is a plain `.pm` that can be
-`use`d directly:
-
-```perl
-use Wx::Gen::Button;
-my $btn = Wx::Gen::Button->Create($parent, -1, "OK", ...);
-```
-
----
-
-### Fortran (kwxFortran)
-
-**Prerequisites:** CMake 3.30+ and a C++23 compiler
-
-**Step 1 — Build kwxgen and generate** (from CMakeLists.txt or a script):
+**Step 2 — Generate bindings** (from a `Makefile` or your build script):
 
 ```sh
-cmake -S extern/kwxFFI/tools/kwxgen -B build/kwxgen -G Ninja
-cmake --build build/kwxgen
-
 build/kwxgen/kwxgen generate \
     --headers extern/kwxFFI/include \
     --defs    extern/kwxFFI/src/kwx_defs.cpp \
-    --lang    fortran \
-    --out     src/gen/
+    --lang    typescript \
+    --out     gen/
 ```
 
-**Generated output** (`src/gen/`): one `wx_button.f90`-style `module` per class using
-`ISO_C_BINDING` `interface` blocks, plus `wx_events.f90`, `wx_keys.f90`,
-`wx_constants.f90`. Compile and `use` normally:
+**Generated output** (`gen/`):
 
-```fortran
-use wx_button
-use wx_events
+- `kwx_ffi_gen.ts` — `Deno.dlopen` call with all C symbol definitions (classes, free functions,
+  events, keys, constants). Import `lib` from this module to call functions directly.
+- `kwx_constants_gen.ts` — Eagerly-evaluated numeric exports for all events, keys, and constants.
+- `kwx_free_functions_gen.ts` — TypeScript wrappers for non-class C functions.
+- `wx{Class}_gen.ts` — One file per class with a TypeScript class wrapping the FFI calls.
+- `kwx_gen.ts` — Master barrel re-export of every generated module.
+
+Run with:
+
+```ts
+import { lib } from "./gen/kwx_ffi_gen.ts";
+
+// Or import the barrel for the full class-based API
+import "./gen/kwx_gen.ts";
+
+// Run with: deno run --allow-ffi your_script.ts
 ```
-
----
 
 ## Re-generating After kwxFFI Updates
 
