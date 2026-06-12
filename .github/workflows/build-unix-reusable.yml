@@ -40,12 +40,12 @@ jobs:
 
     - run: mkdir ${{github.workspace}}/build
 
-    - name: Install libc++ and set stdlib flag (self-hosted)
+    - name: Set stdlib flag (self-hosted)
       if: ${{ inputs.runner-type == 'self-hosted' }}
       run: |
-        # Self-hosted runner has clang-22 pre-installed. Ensure libc++ is
-        # available so <print> (C++23) can be found.
-        sudo apt-get install -y libc++-22-dev libc++abi-22-dev
+        # Self-hosted runner has clang-22 pre-installed.
+        # libc++-22-dev / libc++abi-22-dev must also be pre-installed
+        # by the runner administrator so <print> (C++23) can be found.
         echo "STDLIB_FLAG=-stdlib=libc++" >> $GITHUB_ENV
 
     - name: Install LLVM Clang 21 (GitHub-hosted)
