@@ -151,6 +151,10 @@ static bool LoadConfigFile(Args& args)
     }
 
     args.command = argv[1];
+    if (args.command == ARG_ALL_MD_FILES)
+    {
+        args.command = CMD_ALL_MD_FILES;
+    }
 
     for (int i = 2; i < argc; ++i)
     {
