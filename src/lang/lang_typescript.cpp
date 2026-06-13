@@ -170,40 +170,19 @@ struct WrapParam
     {
         return "Deno.PointerValue";
     }
-    if (func.return_type == "int" || func.return_type == "TArrayLen" ||
-        func.return_type == "TByteStringLen")
+    if (func.return_type == "void*" || func.return_type.find('*') != std::string::npos)
     {
-        return "number";
-    }
-    if (func.return_type == "long" || func.return_type == "time_t")
-    {
-        return "number";
-    }
-    if (func.return_type == "unsigned" || func.return_type == "unsigned int")
-    {
-        return "number";
-    }
-    if (func.return_type == "unsigned long" || func.return_type == "wxUIntPtr")
-    {
-        return "number";
+        return "Deno.PointerValue";
     }
     if (func.return_type == "uintptr_t" || func.return_type == "size_t")
     {
         return "bigint";
     }
-    if (func.return_type == "double" || func.return_type == "float")
-    {
-        return "number";
-    }
-    if (func.return_type == "TChar" || func.return_type == "TUInt8")
-    {
-        return "number";
-    }
-    if (func.return_type == "void*" || func.return_type.find('*') != std::string::npos)
-    {
-        return "Deno.PointerValue";
-    }
-    return "number";  // fallback
+
+    // All remaining numeric types (int, long, unsigned, unsigned long, double,
+    // float, TArrayLen, TByteStringLen, TChar, TUInt8, time_t, wxUIntPtr, etc.)
+    // map to the Deno FFI "number" type.
+    return "number";
 }
 
 // Emit the return statement for a method wrapper, applying any needed conversions.
@@ -296,6 +275,7 @@ void TypeScriptEmitter::Generate(const ParsedFFI& ffi, const fs::path& out_dir)
 
     GenerateFfi(ffi, out_dir);
     GenerateConstants(ffi, out_dir);
+    GenerateHelpers(out_dir);
     GenerateFreeFunctions(ffi, out_dir);
     GenerateClassFiles(ffi, out_dir);
     GenerateIndex(ffi, out_dir);
@@ -378,6 +358,11 @@ void TypeScriptEmitter::GenerateFfi(const ParsedFFI& ffi, const fs::path& out_di
                << " },\n";
     }
 
+    // Always-available kwxFFI symbols (string buffer utilities)
+    output << "  kwxUtf8Buffer_Create: { parameters: [\"pointer\"], result: \"pointer\" },\n";
+    output << "  kwxUtf8Buffer_Data: { parameters: [\"pointer\"], result: \"pointer\" },\n";
+    output << "  kwxUtf8Buffer_Delete: { parameters: [\"pointer\"], result: \"void\" },\n";
+
     output << "} as const);\n";
 
     std::println(stderr,
@@ -385,6 +370,55 @@ void TypeScriptEmitter::GenerateFfi(const ParsedFFI& ffi, const fs::path& out_di
                  "{} events, {} keys, {} constants",
                  method_count, ffi.free_functions.size(), ffi.events.size(), ffi.keys.size(),
                  ffi.constants.size());
+}
+
+// -------------------------------------------------------------------------
+// kwx_helpers_gen.ts — wxString conversion utilities for generated code
+// -------------------------------------------------------------------------
+
+void TypeScriptEmitter::GenerateHelpers(const fs::path& out_dir)
+{
+    const fs::path file_path = out_dir / "kwx_helpers_gen.ts";
+    ConditionalFileWriter output(file_path);
+
+    WriteGeneratedHeader(output, "//");
+    output <<
+        R"TS(import { lib } from "./kwx_ffi_gen.ts";
+import { wxString } from "./wxString_gen.ts";
+
+// --- Helper: create a wxString from a JS string ---
+export function createWxString(s: string): wxString
+{
+    const buf = new TextEncoder().encode(s + "\0");
+    const ptr = Deno.UnsafePointer.of(buf);
+    const result = wxString.CreateUTF8(ptr);
+    if (!result)
+    {
+        throw new Error(`Failed to create wxString for: ${s}`);
+    }
+    return result;
+}
+
+// --- Helper: read a JS string from a wxString* ---
+export function readWxString(wxStrPtr: Deno.PointerValue): string
+{
+    const buf = lib.symbols.kwxUtf8Buffer_Create(wxStrPtr);
+    const data = lib.symbols.kwxUtf8Buffer_Data(buf);
+    const result = data ? Deno.UnsafePointerView.getCString(data) : "";
+    lib.symbols.kwxUtf8Buffer_Delete(buf);
+    return result;
+}
+
+// --- Helper: read and delete a wxString* returned from a getter ---
+export function readAndDeleteWxString(wxStrPtr: Deno.PointerValue): string
+{
+    const result = readWxString(wxStrPtr);
+    lib.symbols.wxString_Delete(wxStrPtr);
+    return result;
+}
+)TS";
+
+    std::println(stderr, "  kwx_helpers_gen.ts:       wxString conversion helpers");
 }
 
 // -------------------------------------------------------------------------
@@ -811,6 +845,8 @@ void TypeScriptEmitter::GenerateIndex(const ParsedFFI& ffi, const fs::path& out_
     {
         output << "export * from \"./kwx_free_functions_gen.ts\";\n";
     }
+
+    output << "export * from \"./kwx_helpers_gen.ts\";\n";
 
     // Sort class names for deterministic output
     std::vector<std::string> class_names;
