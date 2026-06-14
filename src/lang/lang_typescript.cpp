@@ -313,12 +313,19 @@ void TypeScriptEmitter::GenerateFfi(const ParsedFFI& ffi, const fs::path& out_di
     output << "export const lib = Deno.dlopen(_libName, {\n";
 
     // Class methods
+    std::unordered_set<std::string> emitted_symbols;
     size_t method_count = 0;
+    size_t free_count = 0;
     for (const auto& cls: ffi.classes)
     {
         for (const auto& func: cls.methods)
         {
             if (!IsValidFunction(func))
+            {
+                continue;
+            }
+            const std::string func_name = CFuncName(func);
+            if (!emitted_symbols.insert(func_name).second)
             {
                 continue;
             }
@@ -334,7 +341,13 @@ void TypeScriptEmitter::GenerateFfi(const ParsedFFI& ffi, const fs::path& out_di
         {
             continue;
         }
+        const std::string func_name = CFuncName(func);
+        if (!emitted_symbols.insert(func_name).second)
+        {
+            continue;
+        }
         EmitSymbolDef(output, func);
+        ++free_count;
     }
 
     // Event accessor symbols (no parameters, return i32)
@@ -359,16 +372,25 @@ void TypeScriptEmitter::GenerateFfi(const ParsedFFI& ffi, const fs::path& out_di
     }
 
     // Always-available kwxFFI symbols (string buffer utilities)
-    output << "  kwxUtf8Buffer_Create: { parameters: [\"pointer\"], result: \"pointer\" },\n";
-    output << "  kwxUtf8Buffer_Data: { parameters: [\"pointer\"], result: \"pointer\" },\n";
-    output << "  kwxUtf8Buffer_Delete: { parameters: [\"pointer\"], result: \"void\" },\n";
+    if (emitted_symbols.insert("kwxUtf8Buffer_Create").second)
+    {
+        output << "  kwxUtf8Buffer_Create: { parameters: [\"pointer\"], result: \"pointer\" },\n";
+    }
+    if (emitted_symbols.insert("kwxUtf8Buffer_Data").second)
+    {
+        output << "  kwxUtf8Buffer_Data: { parameters: [\"pointer\"], result: \"pointer\" },\n";
+    }
+    if (emitted_symbols.insert("kwxUtf8Buffer_Delete").second)
+    {
+        output << "  kwxUtf8Buffer_Delete: { parameters: [\"pointer\"], result: \"void\" },\n";
+    }
 
     output << "} as const);\n";
 
     std::println(stderr,
                  "  kwx_ffi_gen.ts:          {} class methods, {} free functions, "
                  "{} events, {} keys, {} constants",
-                 method_count, ffi.free_functions.size(), ffi.events.size(), ffi.keys.size(),
+                 method_count, free_count, ffi.events.size(), ffi.keys.size(),
                  ffi.constants.size());
 }
 
