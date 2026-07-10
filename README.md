@@ -5,7 +5,7 @@ It reads the `include/` headers and `src/kwx_defs.cpp` to build a complete model
 surface (~572 classes, ~4,679 methods, ~485 events, 99 key constants, ~1,174 defined constants),
 then emits idiomatic bindings for each target language.
 
-**kwxgen lives in kwxFFI and is consumed by the six language port repos.** The generated files
+**kwxGenerator is an independent repository consumed by the five language port repos.** The generated files
 are written into the *consumer* repo's source tree — kwxFFI itself is unchanged by `generate`.
 
 ---
@@ -22,7 +22,7 @@ The sections below detail the exact steps for each language.
 
 ---
 
-### Fortran (kwxFortran)
+### Fortran ([kwxFortran](https://github.com/KeyWorksRW/kwxFortran))
 
 **Prerequisites:** CMake 3.30+ and a C++23 compiler
 
@@ -50,10 +50,11 @@ use wx_events
 
 ---
 
-### Go (kwxGO)
+### Go ([kwxGO](https://github.com/KeyWorksRW/kwxGO))
 
 **Prerequisites:** CMake 3.30+, a C++23 compiler.
 
+```
 add_custom_command(
     OUTPUT  ${CMAKE_SOURCE_DIR}/wx/events_gen.go
             ${CMAKE_SOURCE_DIR}/wx/keys_gen.go
@@ -78,38 +79,7 @@ kwxgen verify --headers extern/kwxFFI/include \
 
 ---
 
-### LuaJIT (kwxLuaJIT)
-
-**Prerequisites:** CMake 3.30+ and a C++23 compiler to build kwxgen
-
-**Step 1 — Build kwxgen** (standalone, no CMake integration required for pure-Lua projects):
-
-```sh
-cmake -S extern/kwxFFI/tools/kwxgen -B build/kwxgen -G Ninja
-cmake --build build/kwxgen
-```
-
-**Step 2 — Generate bindings:**
-
-```sh
-build/kwxgen/kwxgen generate \
-    --headers extern/kwxFFI/include \
-    --defs    extern/kwxFFI/src/kwx_defs.cpp \
-    --lang    luajit \
-    --out     lua/wx/
-```
-
-**Generated output** (`lua/wx/`): `kwxffi.lua` — a single file with a consolidated
-`ffi.cdef[[ ... ]]` block covering all declarations, plus one helper `.lua` per class
-with idiomatic Lua wrappers. Load with:
-
-```lua
-local wx = require("wx.kwxffi")
-```
-
----
-
-### Julia (kwxJulia)
+### Julia ([kwxJulia](https://github.com/KeyWorksRW/kwxJulia))
 
 **Prerequisites:** CMake 3.30+ and a C++23 compiler.
 
@@ -142,7 +112,38 @@ Regenerate any time kwxFFI is updated; commit the generated files alongside hand
 
 ---
 
-### TypeScript (kwxTypeScript)
+### LuaJIT ([kwxLuaJIT](https://github.com/KeyWorksRW/kwxLuaJIT))
+
+**Prerequisites:** CMake 3.30+ and a C++23 compiler to build kwxgen
+
+**Step 1 — Build kwxgen** (standalone, no CMake integration required for pure-Lua projects):
+
+```sh
+cmake -S extern/kwxFFI/tools/kwxgen -B build/kwxgen -G Ninja
+cmake --build build/kwxgen
+```
+
+**Step 2 — Generate bindings:**
+
+```sh
+build/kwxgen/kwxgen generate \
+    --headers extern/kwxFFI/include \
+    --defs    extern/kwxFFI/src/kwx_defs.cpp \
+    --lang    luajit \
+    --out     lua/wx/
+```
+
+**Generated output** (`lua/wx/`): `kwxffi.lua` — a single file with a consolidated
+`ffi.cdef[[ ... ]]` block covering all declarations, plus one helper `.lua` per class
+with idiomatic Lua wrappers. Load with:
+
+```lua
+local wx = require("wx.kwxffi")
+```
+
+---
+
+### TypeScript ([kwxTypeScript](https://github.com/KeyWorksRW/kwxTypeScript))
 
 **Prerequisites:** CMake 3.30+ and a C++23 compiler; Deno 1.40+.
 
@@ -230,8 +231,8 @@ build/kwxgen/kwxgen verify \
 `kwxgen` is a standalone C++23 program with no wxWidgets dependency:
 
 ```sh
-cmake -S tools/kwxgen -B tools/kwxgen/build -G Ninja
-cmake --build tools/kwxgen/build
+cmake -S . -B build -G Ninja
+cmake --build build
 ```
 
 ## Commands
